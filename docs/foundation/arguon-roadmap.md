@@ -75,7 +75,7 @@ Nothing is left to interpretation.
 - [x] Email/password enabled
 - [x] Google OAuth enabled
 - [x] GitHub OAuth enabled
-- [ ] Redirect URLs configured (localhost + production domain)
+- [x] Redirect URLs configured (localhost + production domain)
 
 **GitHub**
 - [x] Repository created and pushed
