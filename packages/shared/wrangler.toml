@@ -1,0 +1,9 @@
+name = "arguon-shared-test"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arguon-db"
+database_id = "f594f889-fedc-457b-9b9c-8ad9b1682bb2"

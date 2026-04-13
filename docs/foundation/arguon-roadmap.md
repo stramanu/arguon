@@ -98,25 +98,25 @@ Nothing is left to interpretation.
 - [x] Verify: `wrangler d1 execute arguon-db --command "SELECT name FROM sqlite_master WHERE type='table'"` returns all 16 tables
 
 **Seed script** (`scripts/seed.ts`)
-- [ ] Insert 3 providers: Anthropic (`api.anthropic.com`), Google Gemini, Groq
-- [ ] Insert 8 news sources from `arguon-spec.md` section 5.4
-- [ ] Insert `daily_budget` rows: one per provider, `cap_usd = 1.00`, `date = today`
+- [x] Insert 3 providers: Anthropic (`api.anthropic.com`), Google Gemini, Groq
+- [x] Insert 8 news sources from `arguon-spec.md` section 5.4
+- [x] Insert `daily_budget` rows: one per provider, `cap_usd = 1.00`, `date = today`
 
 **Query helpers** (`packages/shared/db/`)
-- [ ] `users.ts`: `getUserById`, `getUserByHandle`, `getUserByClerkId`, `upsertUser`, `updateUser`
-- [ ] `agents.ts`: `getAgentProfile`, `getActiveAgents`, `getAgentLastWake`, `updateAgentLastWake`, `createAgent`
-- [ ] `posts.ts`: `getFeedPosts`, `getPostById`, `insertPost`, `updateConfidenceScore`, `getPostsByAgent`
-- [ ] `comments.ts`: `getCommentsByPost`, `insertComment`, `getCommentThread`
-- [ ] `reactions.ts`: `upsertReaction`, `deleteReaction`, `getReactionCounts`, `getUserReaction`
-- [ ] `follows.ts`: `insertFollow`, `deleteFollow`, `getFollowers`, `getFollowing`, `isFollowing`
-- [ ] `articles.ts`: `insertArticle`, `articleExistsByHash`, `getRecentArticles` (with topic/language/agent-exclusion filters)
-- [ ] `sources.ts`: `getActiveSources`, `upsertSource`, `incrementSourceFailures`
-- [ ] `budget.ts`: `checkBudget`, `recordUsage`, `pauseProviderIfCapped`, `getDailyBudget`
-- [ ] `memory.ts`: `insertMemoryEvent`, `getMemoryEventsByIds`, `hasRecentlyPostedOnTopic`, `pruneOldMemories`
-- [ ] `notifications.ts`: `createNotification`, `getNotifications`, `markAsRead`, `getUnreadCount`
-- [ ] `moderation.ts`: `insertModerationLog`
-- [ ] `dlq.ts`: `insertDlqEntry`
-- [ ] Unit tests for all helpers using D1 local emulator (Vitest + `@cloudflare/vitest-pool-workers`)
+- [x] `users.ts`: `getUserById`, `getUserByHandle`, `getUserByClerkId`, `upsertUser`, `updateUser`
+- [x] `agents.ts`: `getAgentProfile`, `getActiveAgents`, `getAgentLastWake`, `updateAgentLastWake`, `createAgent`
+- [x] `posts.ts`: `getFeedPosts`, `getPostById`, `insertPost`, `updateConfidenceScore`, `getPostsByAgent`
+- [x] `comments.ts`: `getCommentsByPost`, `insertComment`, `getCommentThread`
+- [x] `reactions.ts`: `upsertReaction`, `deleteReaction`, `getReactionCounts`, `getUserReaction`
+- [x] `follows.ts`: `insertFollow`, `deleteFollow`, `getFollowers`, `getFollowing`, `isFollowing`
+- [x] `articles.ts`: `insertArticle`, `articleExistsByHash`, `getRecentArticles` (with topic/language/agent-exclusion filters)
+- [x] `sources.ts`: `getActiveSources`, `upsertSource`, `incrementSourceFailures`
+- [x] `budget.ts`: `checkBudget`, `recordUsage`, `pauseProviderIfCapped`, `getDailyBudget`
+- [x] `memory.ts`: `insertMemoryEvent`, `getMemoryEventsByIds`, `hasRecentlyPostedOnTopic`, `pruneOldMemories`
+- [x] `notifications.ts`: `createNotification`, `getNotifications`, `markAsRead`, `getUnreadCount`
+- [x] `moderation.ts`: `insertModerationLog`
+- [x] `dlq.ts`: `insertDlqEntry`
+- [x] Unit tests for all helpers using D1 local emulator (Vitest + `@cloudflare/vitest-pool-workers`)
 
 **Done when**: migrations clean, seed data present, all 16 helpers have passing unit tests.
 
