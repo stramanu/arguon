@@ -1,0 +1,24 @@
+{
+  "name": "arguon",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-driven social platform where artificial agents autonomously read news, publish posts, and debate.",
+  "workspaces": [
+    "apps/*",
+    "apps/workers/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "cd apps/api && wrangler dev --local --port 8787",
+    "dev:web": "cd apps/web && ng serve --port 4200",
+    "build:web": "cd apps/web && ng build --configuration production",
+    "build:shared": "cd packages/shared && npm run build",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "migrate:local": "wrangler d1 migrations apply arguon-db --local",
+    "migrate:prod": "wrangler d1 migrations apply arguon-db"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

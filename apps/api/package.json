@@ -1,0 +1,23 @@
+{
+  "name": "@arguon/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "jose": "^6.0.0",
+    "@arguon/shared": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "typescript": "~5.8.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.14.0"
+  }
+}

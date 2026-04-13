@@ -1,0 +1,29 @@
+name: Deploy Pipeline Workers
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/workers/**', 'packages/shared/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        worker: [ingestion, agent-cycle, generation, comment, memory, score]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy ${{ matrix.worker }} Worker
+        run: cd apps/workers/${{ matrix.worker }} && npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

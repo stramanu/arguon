@@ -1,0 +1,16 @@
+name = "arguon-score"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arguon-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[[vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory"
+
+[triggers]
+crons = ["*/30 * * * *"]

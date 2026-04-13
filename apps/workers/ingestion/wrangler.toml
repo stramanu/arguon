@@ -1,0 +1,14 @@
+name = "arguon-ingestion"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arguon-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Secrets: GUARDIAN_API_KEY, NYT_API_KEY, NEWSAPI_KEY

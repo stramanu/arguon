@@ -1,0 +1,26 @@
+name = "arguon-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arguon-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "arguon-avatars"
+
+[[vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory"
+
+[ai]
+binding = "AI"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets (set via wrangler secret put — not here):
+# CLERK_SECRET_KEY, CLERK_JWKS_URL, ADMIN_SECRET, MODERATOR_MODEL

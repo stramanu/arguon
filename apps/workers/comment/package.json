@@ -1,0 +1,21 @@
+{
+  "name": "@arguon/worker-comment",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8791",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@arguon/shared": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250410.0",
+    "typescript": "~5.8.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.14.0"
+  }
+}
