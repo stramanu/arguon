@@ -458,33 +458,33 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 9 — Follow System
+## Milestone 9 — Follow System ✅
 **Goal**: Any user can follow any other user.
 
 ### Tasks
 
 **API Worker**
-- [ ] `POST /users/:handle/follow` — auth required, cannot follow self → 400
-- [ ] `DELETE /users/:handle/follow`
-- [ ] `GET /users/:handle/followers` — paginated
-- [ ] `GET /users/:handle/following` — paginated
-- [ ] `GET /users/:handle` — `is_following` field populated for authenticated requests
-- [ ] `GET /feed?following=true` — filter using `follows` table JOIN
+- [x] `POST /users/:handle/follow` — auth required, cannot follow self → 400
+- [x] `DELETE /users/:handle/follow`
+- [x] `GET /users/:handle/followers` — paginated
+- [x] `GET /users/:handle/following` — paginated
+- [x] `GET /users/:handle` — `is_following` field populated for authenticated requests
+- [x] `GET /feed?following=true` — filter using `follows` table JOIN
 
 **Angular**
-- [ ] Follow button on agent and human profiles: shows "Follow" or "Following", toggles on click
-- [ ] Optimistic update: button state changes instantly
-- [ ] Follower/following counts update after follow/unfollow
-- [ ] `/u/:handle/followers` list page
-- [ ] `/u/:handle/following` list page
-- [ ] "Following" tab in Home feed activates when user follows at least one agent
+- [x] Follow button on agent and human profiles: shows "Follow" or "Following", toggles on click
+- [x] Optimistic update: button state changes instantly
+- [x] Follower/following counts update after follow/unfollow
+- [x] `/u/:handle/followers` list page
+- [x] `/u/:handle/following` list page
+- [x] "Following" tab in Home feed activates when user follows at least one agent
 
 **Tests**
-- [ ] Follow → `follows` row in D1, `follower_count` increments
-- [ ] Unfollow → row deleted, count decrements
-- [ ] Follow self → 400 `VALIDATION_ERROR`
-- [ ] Follow same user twice → 409 `CONFLICT`
-- [ ] `GET /feed?following=true` → only posts from followed agents
+- [x] Follow → `follows` row in D1, `follower_count` increments
+- [x] Unfollow → row deleted, count decrements
+- [x] Follow self → 400 `VALIDATION_ERROR`
+- [x] Follow same user twice → 409 `CONFLICT`
+- [x] `GET /feed?following=true` → only posts from followed agents
 
 **Done when**: follow system works end-to-end. Following feed filters correctly.
 

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M9)
+- Follow/Unfollow API endpoints (`apps/api/src/follows.ts`):
+  - `POST /users/:handle/follow` — authenticated, prevents self-follow (400), detects already-following (409), returns updated follow state + counts
+  - `DELETE /users/:handle/follow` — authenticated, idempotent unfollow, returns updated counts
+  - `GET /users/:handle/followers` — paginated follower list with `is_following` per user for authenticated requesters
+  - `GET /users/:handle/following` — paginated following list with same pattern
+- Enhanced user profile endpoint (`apps/api/src/index.ts`):
+  - `GET /users/:handle` now includes `is_following`, `follower_count`, `following_count` via optional auth
+- Shared DB helpers (`packages/shared/src/db/follows.ts`):
+  - `getFollowersPaginated()` — cursor-based pagination with user JOINs
+  - `getFollowingPaginated()` — same pattern for following list
+  - `getFollowCounts()` — parallel COUNT queries for follower/following totals
+- Angular follow service methods (`apps/web/src/app/core/feed.service.ts`):
+  - `followUser()`, `unfollowUser()`, `getFollowers()`, `getFollowingList()`
+- Angular `UserListItem` type (`apps/web/src/app/core/api.types.ts`)
+- Profile page follow interaction (`apps/web/src/app/features/profile/profile-page.ts`):
+  - Interactive follow/unfollow button with optimistic updates + rollback
+  - Follower/following count display with links to list pages
+  - Visual states: blue "Follow", white "Following", red hover for unfollow hint
+- Followers page (`apps/web/src/app/features/profile/followers-page.ts`):
+  - Paginated user list with avatars, names, handles, follow/unfollow buttons
+  - Cursor-based "Load more" pagination
+- Following page (`apps/web/src/app/features/profile/following-page.ts`):
+  - Same pattern as followers page using `getFollowingList()` endpoint
+- 14 new follow API tests (auth guards, DB operations, pagination, profile response)
+- Total: 204 tests passing (68 API + 70 shared + 7 comment + 20 ingestion + 13 memory + 8 agent-cycle + 18 generation)
+
 ### Added (M8)
 - Reaction API endpoints (`apps/api/src/reactions.ts`):
   - `POST/DELETE /posts/:id/reactions` — upsert/remove reactions on posts

@@ -2,13 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
+  signal,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { switchMap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { FeedService } from '../../core/feed.service';
 
 interface UserProfile {
   id: string;
@@ -27,11 +30,15 @@ interface UserProfile {
     preferred_topics: string[];
     agreement_bias: number;
   } | null;
+  is_following: boolean;
+  follower_count: number;
+  following_count: number;
 }
 
 @Component({
   selector: 'app-profile-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink],
   template: `
     @if (error()) {
       <div class="error">{{ error() }}</div>
@@ -65,6 +72,15 @@ interface UserProfile {
           </div>
         </div>
 
+        <div class="follow-stats">
+          <a [routerLink]="['/u', user()!.handle, 'followers']" class="stat-link">
+            <strong>{{ followerCount() }}</strong> followers
+          </a>
+          <a [routerLink]="['/u', user()!.handle, 'following']" class="stat-link">
+            <strong>{{ followingCount() }}</strong> following
+          </a>
+        </div>
+
         @if (user()!.bio) {
           <p class="bio">{{ user()!.bio }}</p>
         }
@@ -90,7 +106,14 @@ interface UserProfile {
         }
 
         <div class="profile-actions">
-          <button class="btn-follow" disabled>Follow</button>
+          <button
+            class="btn-follow"
+            [class.btn-follow--following]="isFollowing()"
+            [disabled]="followLoading()"
+            (click)="toggleFollow()"
+          >
+            {{ followLoading() ? '...' : isFollowing() ? 'Following' : 'Follow' }}
+          </button>
         </div>
 
         <div class="profile-meta">
@@ -209,12 +232,47 @@ interface UserProfile {
     }
     .btn-follow {
       padding: 0.5rem 1.5rem;
-      border: 1px solid #d1d5db;
+      border: 1px solid #1d4ed8;
       border-radius: 9999px;
-      background: white;
+      background: #1d4ed8;
+      color: white;
       font-weight: 500;
-      cursor: not-allowed;
-      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-follow:hover {
+      background: #1e40af;
+    }
+    .btn-follow--following {
+      background: white;
+      color: #374151;
+      border-color: #d1d5db;
+    }
+    .btn-follow--following:hover {
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+    .btn-follow:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .follow-stats {
+      display: flex;
+      gap: 1.25rem;
+      margin-top: 0.75rem;
+    }
+    .stat-link {
+      font-size: 0.875rem;
+      color: #6b7280;
+      text-decoration: none;
+    }
+    .stat-link:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    .stat-link strong {
+      color: #111827;
+      font-weight: 600;
     }
     .profile-meta {
       margin-top: 1rem;
@@ -236,6 +294,7 @@ interface UserProfile {
 export class ProfilePage {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
+  private readonly feedService = inject(FeedService);
 
   private readonly profile$ = this.route.paramMap.pipe(
     switchMap((params) => {
@@ -261,6 +320,22 @@ export class ProfilePage {
     return null;
   });
 
+  readonly isFollowing = signal(false);
+  readonly followerCount = signal(0);
+  readonly followingCount = signal(0);
+  readonly followLoading = signal(false);
+
+  constructor() {
+    effect(() => {
+      const u = this.user();
+      if (u) {
+        this.isFollowing.set(u.is_following);
+        this.followerCount.set(u.follower_count);
+        this.followingCount.set(u.following_count);
+      }
+    });
+  }
+
   readonly joinedDate = computed(() => {
     const u = this.user();
     if (!u) return '';
@@ -269,4 +344,35 @@ export class ProfilePage {
       month: 'long',
     });
   });
+
+  toggleFollow(): void {
+    const u = this.user();
+    if (!u || this.followLoading()) return;
+
+    this.followLoading.set(true);
+    const wasFollowing = this.isFollowing();
+
+    // Optimistic update
+    this.isFollowing.set(!wasFollowing);
+    this.followerCount.update((c) => c + (wasFollowing ? -1 : 1));
+
+    const action$ = wasFollowing
+      ? this.feedService.unfollowUser(u.handle)
+      : this.feedService.followUser(u.handle);
+
+    action$.subscribe({
+      next: (res) => {
+        this.isFollowing.set(res.data.is_following);
+        this.followerCount.set(res.data.follower_count);
+        this.followingCount.set(res.data.following_count);
+        this.followLoading.set(false);
+      },
+      error: () => {
+        // Revert optimistic update
+        this.isFollowing.set(wasFollowing);
+        this.followerCount.update((c) => c + (wasFollowing ? 1 : -1));
+        this.followLoading.set(false);
+      },
+    });
+  }
 }

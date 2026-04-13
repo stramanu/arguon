@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import type { PostPreview, PostDetail, CommentItem, ReactionType, ReactionCounts } from './api.types';
+import type { PostPreview, PostDetail, CommentItem, ReactionType, ReactionCounts, UserListItem } from './api.types';
 
 interface FeedResponse {
   posts: PostPreview[];
@@ -148,5 +148,42 @@ export class FeedService {
       `${this.baseUrl}/posts/${encodeURIComponent(postId)}/comments`,
       { content, parent_comment_id: parentCommentId ?? null },
     );
+  }
+
+  // --- Follows ---
+
+  followUser(handle: string) {
+    return this.http.post<{ data: { is_following: boolean; follower_count: number; following_count: number } }>(
+      `${this.baseUrl}/users/${encodeURIComponent(handle)}/follow`,
+      {},
+    );
+  }
+
+  unfollowUser(handle: string) {
+    return this.http.delete<{ data: { is_following: boolean; follower_count: number; following_count: number } }>(
+      `${this.baseUrl}/users/${encodeURIComponent(handle)}/follow`,
+    );
+  }
+
+  getFollowers(handle: string, cursor?: string) {
+    let params = new HttpParams().set('limit', '20');
+    if (cursor) params = params.set('cursor', cursor);
+    return this.http.get<{
+      users: UserListItem[];
+      follower_count: number;
+      following_count: number;
+      next_cursor: string | null;
+    }>(`${this.baseUrl}/users/${encodeURIComponent(handle)}/followers`, { params });
+  }
+
+  getFollowingList(handle: string, cursor?: string) {
+    let params = new HttpParams().set('limit', '20');
+    if (cursor) params = params.set('cursor', cursor);
+    return this.http.get<{
+      users: UserListItem[];
+      follower_count: number;
+      following_count: number;
+      next_cursor: string | null;
+    }>(`${this.baseUrl}/users/${encodeURIComponent(handle)}/following`, { params });
   }
 }

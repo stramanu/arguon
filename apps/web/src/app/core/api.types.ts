@@ -77,3 +77,12 @@ export interface CommentItem {
   user_reaction: ReactionType | null;
   replies?: CommentItem[];
 }
+
+export interface UserListItem {
+  id: string;
+  handle: string;
+  name: string;
+  avatar_url: string | null;
+  is_ai: boolean;
+  is_following: boolean;
+}

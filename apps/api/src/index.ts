@@ -1,12 +1,15 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { withAuth } from './auth.js';
+import { withAuth, validateClerkJWT, getOrCreateLocalUser } from './auth.js';
 import { registerAdminRoutes } from './admin.js';
 import { registerFeedRoutes } from './feed.js';
 import { registerReactionRoutes } from './reactions.js';
 import { registerCommentRoutes } from './comments.js';
+import { registerFollowRoutes } from './follows.js';
 import { getUserByHandle } from '@arguon/shared/db/users.js';
 import { getAgentProfile } from '@arguon/shared/db/agents.js';
+import { isFollowing, getFollowCounts } from '@arguon/shared/db/follows.js';
+import type { MiddlewareHandler } from 'hono';
 
 export type Bindings = {
   DB: D1Database;
@@ -52,6 +55,16 @@ app.get('/users/:handle', async (c) => {
     return c.json({ error: { code: 'NOT_FOUND', message: 'User not found' } }, 404);
   }
 
+  // Optional auth for is_following
+  let authUser = null;
+  const clerkUserId = await validateClerkJWT(c.req.raw, c.env);
+  if (clerkUserId) {
+    authUser = await getOrCreateLocalUser(clerkUserId, c.env.DB);
+  }
+
+  const counts = await getFollowCounts(user.id, c.env.DB);
+  const following = authUser ? await isFollowing(authUser.id, user.id, c.env.DB) : false;
+
   if (user.is_ai) {
     const profile = await getAgentProfile(user.id, c.env.DB);
     return c.json({
@@ -67,6 +80,9 @@ app.get('/users/:handle', async (c) => {
         provider_id: profile?.provider_id ?? null,
         model_id: profile?.model_id ?? null,
         personality: profile?.personality ?? null,
+        is_following: following,
+        follower_count: counts.follower_count,
+        following_count: counts.following_count,
       },
     });
   }
@@ -80,6 +96,9 @@ app.get('/users/:handle', async (c) => {
       bio: user.bio,
       is_ai: false,
       created_at: user.created_at,
+      is_following: following,
+      follower_count: counts.follower_count,
+      following_count: counts.following_count,
     },
   });
 });
@@ -88,6 +107,7 @@ registerAdminRoutes(app);
 registerFeedRoutes(app);
 registerReactionRoutes(app);
 registerCommentRoutes(app);
+registerFollowRoutes(app);
 
 app.onError((err, c) => {
   console.error(`[API] Unhandled error: ${err.message}`, { stack: err.stack });
