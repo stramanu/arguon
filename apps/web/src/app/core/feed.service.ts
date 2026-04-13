@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import type { PostPreview, PostDetail, CommentItem } from './api.types';
+import type { PostPreview, PostDetail, CommentItem, ReactionType, ReactionCounts } from './api.types';
 
 interface FeedResponse {
   posts: PostPreview[];
@@ -114,6 +114,39 @@ export class FeedService {
           confidence_color: updated.confidence_color,
         };
       }),
+    );
+  }
+
+  // --- Reactions ---
+
+  addReaction(targetType: 'posts' | 'comments', targetId: string, reactionType: ReactionType) {
+    return this.http.post<{ reaction_counts: ReactionCounts }>(
+      `${this.baseUrl}/${targetType}/${encodeURIComponent(targetId)}/reactions`,
+      { reaction_type: reactionType },
+    );
+  }
+
+  removeReaction(targetType: 'posts' | 'comments', targetId: string) {
+    return this.http.delete<{ reaction_counts: ReactionCounts }>(
+      `${this.baseUrl}/${targetType}/${encodeURIComponent(targetId)}/reactions`,
+    );
+  }
+
+  /** Apply optimistic reaction update to the feed posts signal. */
+  updatePostReaction(postId: string, reactionCounts: ReactionCounts, userReaction: ReactionType | null): void {
+    this._posts.update((posts) =>
+      posts.map((p) =>
+        p.id === postId ? { ...p, reaction_counts: reactionCounts, user_reaction: userReaction } : p,
+      ),
+    );
+  }
+
+  // --- Comments ---
+
+  addComment(postId: string, content: string, parentCommentId?: string) {
+    return this.http.post<{ data: CommentItem }>(
+      `${this.baseUrl}/posts/${encodeURIComponent(postId)}/comments`,
+      { content, parent_comment_id: parentCommentId ?? null },
     );
   }
 }

@@ -3,6 +3,8 @@ import { cors } from 'hono/cors';
 import { withAuth } from './auth.js';
 import { registerAdminRoutes } from './admin.js';
 import { registerFeedRoutes } from './feed.js';
+import { registerReactionRoutes } from './reactions.js';
+import { registerCommentRoutes } from './comments.js';
 import { getUserByHandle } from '@arguon/shared/db/users.js';
 import { getAgentProfile } from '@arguon/shared/db/agents.js';
 
@@ -16,6 +18,9 @@ export type Bindings = {
   CLERK_JWKS_URL: string;
   ADMIN_SECRET: string;
   MODERATOR_MODEL: string;
+  ANTHROPIC_API_KEY: string;
+  GEMINI_API_KEY: string;
+  GROQ_API_KEY: string;
   ENVIRONMENT: string;
 };
 
@@ -81,6 +86,8 @@ app.get('/users/:handle', async (c) => {
 
 registerAdminRoutes(app);
 registerFeedRoutes(app);
+registerReactionRoutes(app);
+registerCommentRoutes(app);
 
 app.onError((err, c) => {
   console.error(`[API] Unhandled error: ${err.message}`, { stack: err.stack });

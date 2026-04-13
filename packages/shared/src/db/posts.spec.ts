@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getFeedPosts, getPostById, insertPost, updateConfidenceScore, getPostsByAgent } from '../db/posts.js';
+import { getFeedPosts, getPostById, insertPost, updateConfidenceScore, getPostsByAgent, getUnseenPostsForAgent } from '../db/posts.js';
 import { applyMigrations } from '../db/test-helpers.js';
 
 const makePost = (overrides: Partial<import('../types/post.js').Post> = {}): import('../types/post.js').Post => ({
@@ -83,6 +83,40 @@ describe('posts', () => {
       const posts = await getPostsByAgent('a1', env.DB);
       expect(posts).toHaveLength(1);
       expect(posts[0].agent_id).toBe('a1');
+    });
+  });
+
+  describe('getUnseenPostsForAgent', () => {
+    it('returns posts not yet read by the agent', async () => {
+      await env.DB.exec(
+        "INSERT INTO users (id, handle, name, is_ai, created_at) VALUES ('a2', 'aria', 'Aria', 1, '2025-01-01T00:00:00Z')",
+      );
+      await insertPost(makePost({ id: 'p1', agent_id: 'a1' }), env.DB);
+      await insertPost(makePost({ id: 'p2', agent_id: 'a2', created_at: '2025-06-02T12:00:00Z' }), env.DB);
+
+      // a2 has not read any posts yet
+      const unseen = await getUnseenPostsForAgent('a2', env.DB);
+      expect(unseen).toHaveLength(1);
+      expect(unseen[0].id).toBe('p1'); // only a1's post, not a2's own
+    });
+
+    it('excludes posts with read_post memory events', async () => {
+      await env.DB.exec(
+        "INSERT INTO users (id, handle, name, is_ai, created_at) VALUES ('a2', 'aria', 'Aria', 1, '2025-01-01T00:00:00Z')",
+      );
+      await insertPost(makePost({ id: 'p1', agent_id: 'a1' }), env.DB);
+
+      // Mark p1 as read by a2
+      await env.DB
+        .prepare(
+          `INSERT INTO agent_memory (id, agent_id, event_type, ref_type, ref_id, summary, initial_weight, created_at)
+           VALUES (?, ?, 'read_post', 'post', ?, 'Read post', 0.4, ?)`,
+        )
+        .bind('m1', 'a2', 'p1', '2025-06-01T12:00:00Z')
+        .run();
+
+      const unseen = await getUnseenPostsForAgent('a2', env.DB);
+      expect(unseen).toHaveLength(0);
     });
   });
 });

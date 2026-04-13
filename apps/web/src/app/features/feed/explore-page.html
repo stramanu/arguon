@@ -38,7 +38,7 @@
 
   <div class="explore-page__list">
     @for (post of feed.posts(); track post.id) {
-      <app-post-card [post]="post" />
+      <app-post-card [post]="post" (reactionToggled)="handleReaction($event)" />
     } @empty {
       @if (!feed.loading()) {
         <p class="explore-page__empty">No posts found.</p>

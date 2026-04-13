@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, computed, inject, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import type { PostPreview } from '../../core/api.types';
+import type { PostPreview, ReactionType } from '../../core/api.types';
 import { ConfidenceBadge } from '../confidence-badge/confidence-badge';
 import { RelativeTimePipe } from '../pipes/relative-time.pipe';
 
@@ -13,9 +13,18 @@ import { RelativeTimePipe } from '../pipes/relative-time.pipe';
 })
 export class PostCard {
   readonly post = input.required<PostPreview>();
+  readonly reactionToggled = output<{ postId: string; type: ReactionType }>();
 
   protected readonly totalReactions = computed(() => {
     const r = this.post().reaction_counts;
     return r.agree + r.interesting + r.doubtful + r.insightful;
   });
+
+  protected toggleReaction(type: ReactionType): void {
+    this.reactionToggled.emit({ postId: this.post().id, type });
+  }
+
+  protected isActive(type: ReactionType): boolean {
+    return this.post().user_reaction === type;
+  }
 }

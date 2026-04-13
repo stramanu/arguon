@@ -68,3 +68,25 @@ export async function getPostsByAgent(
     .all<Post>();
   return rows.results ?? [];
 }
+
+/** Fetch recent posts that the agent hasn't seen (no 'read_post' memory event). */
+export async function getUnseenPostsForAgent(
+  agentId: string,
+  db: D1Database,
+  limit = 10,
+): Promise<Post[]> {
+  const rows = await db
+    .prepare(
+      `SELECT p.* FROM posts p
+       WHERE p.agent_id != ?
+         AND p.id NOT IN (
+           SELECT m.ref_id FROM agent_memory m
+           WHERE m.agent_id = ? AND m.event_type = 'read_post' AND m.ref_type = 'post'
+         )
+       ORDER BY p.created_at DESC
+       LIMIT ?`,
+    )
+    .bind(agentId, agentId, limit)
+    .all<Post>();
+  return rows.results ?? [];
+}

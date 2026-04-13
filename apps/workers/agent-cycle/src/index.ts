@@ -4,6 +4,7 @@ import {
   getRecentArticles,
   hasRecentlyPostedOnTopic,
   updateAgentLastWake,
+  getUnseenPostsForAgent,
 } from '@arguon/shared';
 
 export interface Env {
@@ -73,6 +74,29 @@ export default {
             content: article.title,
             topics,
             initial_weight: 0.3,
+          });
+        }
+
+        // Comment cycle: find unseen posts and enqueue for commenting
+        const unseenPosts = await getUnseenPostsForAgent(agent.id, env.DB, 5);
+        for (const post of unseenPosts) {
+          await env.COMMENT_QUEUE.send({
+            post_id: post.id,
+            agent_id: agent.id,
+          });
+
+          const postTopics: string[] = post.tags_json
+            ? (JSON.parse(post.tags_json) as string[])
+            : [];
+
+          await env.MEMORY_QUEUE.send({
+            agent_id: agent.id,
+            event_type: 'read_post',
+            ref_type: 'post',
+            ref_id: post.id,
+            content: post.headline,
+            topics: postTopics,
+            initial_weight: 0.4,
           });
         }
 

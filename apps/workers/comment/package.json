@@ -13,6 +13,7 @@
     "@arguon/shared": "*"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.14.5",
     "@cloudflare/workers-types": "^4.20250410.0",
     "typescript": "~5.8.0",
     "vitest": "^4.1.0",

@@ -70,15 +70,66 @@
     }
 
     <div class="post-detail__reactions">
-      <span title="Agree">👍 {{ p.reaction_counts.agree }}</span>
-      <span title="Interesting">💡 {{ p.reaction_counts.interesting }}</span>
-      <span title="Doubtful">🤔 {{ p.reaction_counts.doubtful }}</span>
-      <span title="Insightful">🔍 {{ p.reaction_counts.insightful }}</span>
+      <button
+        class="post-detail__reaction-btn"
+        [class.post-detail__reaction-btn--active]="isReactionActive('agree')"
+        title="Agree"
+        (click)="toggleReaction('agree')"
+        type="button"
+      >👍 {{ p.reaction_counts.agree }}</button>
+      <button
+        class="post-detail__reaction-btn"
+        [class.post-detail__reaction-btn--active]="isReactionActive('interesting')"
+        title="Interesting"
+        (click)="toggleReaction('interesting')"
+        type="button"
+      >💡 {{ p.reaction_counts.interesting }}</button>
+      <button
+        class="post-detail__reaction-btn"
+        [class.post-detail__reaction-btn--active]="isReactionActive('doubtful')"
+        title="Doubtful"
+        (click)="toggleReaction('doubtful')"
+        type="button"
+      >🤔 {{ p.reaction_counts.doubtful }}</button>
+      <button
+        class="post-detail__reaction-btn"
+        [class.post-detail__reaction-btn--active]="isReactionActive('insightful')"
+        title="Insightful"
+        (click)="toggleReaction('insightful')"
+        type="button"
+      >🔍 {{ p.reaction_counts.insightful }}</button>
     </div>
   </article>
 
   <section class="comments-section">
     <h2>Comments ({{ p.comment_count }})</h2>
+
+    <div class="comment-input">
+      @if (commentError()) {
+        <div class="comment-input__error" role="alert">{{ commentError() }}</div>
+      }
+      <textarea
+        class="comment-input__textarea"
+        placeholder="Write a comment..."
+        [ngModel]="commentText()"
+        (ngModelChange)="commentText.set($event)"
+        [maxlength]="300"
+        rows="3"
+      ></textarea>
+      <div class="comment-input__footer">
+        <span class="comment-input__counter" [class.comment-input__counter--limit]="charCount() >= 280">
+          {{ charCount() }}/300
+        </span>
+        <button
+          class="comment-input__submit"
+          [disabled]="charCount() === 0 || charCount() > 300 || commentSubmitting()"
+          (click)="submitComment()"
+          type="button"
+        >
+          {{ commentSubmitting() ? 'Posting...' : 'Post comment' }}
+        </button>
+      </div>
+    </div>
 
     @for (comment of comments(); track comment.id) {
       <div class="comment">
@@ -92,6 +143,40 @@
           <time class="comment__time">{{ comment.created_at | relativeTime }}</time>
         </div>
         <p class="comment__content">{{ comment.content }}</p>
+        <div class="comment__actions">
+          <button
+            class="comment__reply-btn"
+            (click)="startReply(comment.id)"
+            type="button"
+          >Reply</button>
+        </div>
+
+        @if (replyingTo() === comment.id) {
+          <div class="comment-input comment-input--reply">
+            <textarea
+              class="comment-input__textarea"
+              placeholder="Write a reply..."
+              [ngModel]="replyText()"
+              (ngModelChange)="replyText.set($event)"
+              [maxlength]="300"
+              rows="2"
+            ></textarea>
+            <div class="comment-input__footer">
+              <span class="comment-input__counter" [class.comment-input__counter--limit]="replyCharCount() >= 280">
+                {{ replyCharCount() }}/300
+              </span>
+              <button class="comment-input__cancel" (click)="cancelReply()" type="button">Cancel</button>
+              <button
+                class="comment-input__submit"
+                [disabled]="replyCharCount() === 0 || replyCharCount() > 300 || commentSubmitting()"
+                (click)="submitReply(comment.id)"
+                type="button"
+              >
+                {{ commentSubmitting() ? 'Posting...' : 'Reply' }}
+              </button>
+            </div>
+          </div>
+        }
 
         @if (comment.replies && comment.replies.length > 0) {
           <div class="comment__replies">

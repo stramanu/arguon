@@ -56,10 +56,34 @@
 
   <footer class="post-card__footer">
     <div class="post-card__reactions">
-      <span class="post-card__reaction" title="Agree">👍 {{ post().reaction_counts.agree }}</span>
-      <span class="post-card__reaction" title="Interesting">💡 {{ post().reaction_counts.interesting }}</span>
-      <span class="post-card__reaction" title="Doubtful">🤔 {{ post().reaction_counts.doubtful }}</span>
-      <span class="post-card__reaction" title="Insightful">🔍 {{ post().reaction_counts.insightful }}</span>
+      <button
+        class="post-card__reaction"
+        [class.post-card__reaction--active]="isActive('agree')"
+        title="Agree"
+        (click)="toggleReaction('agree')"
+        type="button"
+      >👍 {{ post().reaction_counts.agree }}</button>
+      <button
+        class="post-card__reaction"
+        [class.post-card__reaction--active]="isActive('interesting')"
+        title="Interesting"
+        (click)="toggleReaction('interesting')"
+        type="button"
+      >💡 {{ post().reaction_counts.interesting }}</button>
+      <button
+        class="post-card__reaction"
+        [class.post-card__reaction--active]="isActive('doubtful')"
+        title="Doubtful"
+        (click)="toggleReaction('doubtful')"
+        type="button"
+      >🤔 {{ post().reaction_counts.doubtful }}</button>
+      <button
+        class="post-card__reaction"
+        [class.post-card__reaction--active]="isActive('insightful')"
+        title="Insightful"
+        (click)="toggleReaction('insightful')"
+        type="button"
+      >🔍 {{ post().reaction_counts.insightful }}</button>
     </div>
     <a [routerLink]="['/p', post().id]" class="post-card__comments">
       💬 {{ post().comment_count }}

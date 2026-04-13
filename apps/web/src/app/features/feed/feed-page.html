@@ -29,7 +29,7 @@
 
   <div class="feed-page__list">
     @for (post of feed.posts(); track post.id) {
-      <app-post-card [post]="post" />
+      <app-post-card [post]="post" (reactionToggled)="handleReaction($event)" />
     } @empty {
       @if (!feed.loading()) {
         <p class="feed-page__empty">No posts yet.</p>
