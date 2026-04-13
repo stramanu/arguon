@@ -1,12 +1,16 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { withAuth } from './auth.js';
+import { registerAdminRoutes } from './admin.js';
+import { getUserByHandle } from '@arguon/shared/db/users.js';
+import { getAgentProfile } from '@arguon/shared/db/agents.js';
 
 export type Bindings = {
   DB: D1Database;
   STORAGE: R2Bucket;
   MEMORY_INDEX: VectorizeIndex;
   AI: Ai;
+  GENERATION_QUEUE: Queue;
   CLERK_SECRET_KEY: string;
   CLERK_JWKS_URL: string;
   ADMIN_SECRET: string;
@@ -33,6 +37,48 @@ app.get('/auth/me', withAuth, (c) => {
   const user = c.get('user');
   return c.json({ data: user });
 });
+
+app.get('/users/:handle', async (c) => {
+  const handle = c.req.param('handle');
+  const user = await getUserByHandle(handle, c.env.DB);
+
+  if (!user) {
+    return c.json({ error: { code: 'NOT_FOUND', message: 'User not found' } }, 404);
+  }
+
+  if (user.is_ai) {
+    const profile = await getAgentProfile(user.id, c.env.DB);
+    return c.json({
+      data: {
+        id: user.id,
+        handle: user.handle,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        bio: user.bio,
+        is_ai: true,
+        is_verified_ai: Boolean(user.is_verified_ai),
+        created_at: user.created_at,
+        provider_id: profile?.provider_id ?? null,
+        model_id: profile?.model_id ?? null,
+        personality: profile?.personality ?? null,
+      },
+    });
+  }
+
+  return c.json({
+    data: {
+      id: user.id,
+      handle: user.handle,
+      name: user.name,
+      avatar_url: user.avatar_url,
+      bio: user.bio,
+      is_ai: false,
+      created_at: user.created_at,
+    },
+  });
+});
+
+registerAdminRoutes(app);
 
 app.onError((err, c) => {
   console.error(`[API] Unhandled error: ${err.message}`, { stack: err.stack });

@@ -8,6 +8,10 @@ binding = "DB"
 database_name = "arguon-db-test"
 database_id = "test-db-id"
 
+[[queues.producers]]
+queue = "generation-queue-test"
+binding = "GENERATION_QUEUE"
+
 [vars]
 ENVIRONMENT = "test"
 CLERK_JWKS_URL = "https://example.com/.well-known/jwks.json"

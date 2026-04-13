@@ -26,5 +26,9 @@ zone_name = "arguon.com"
 [vars]
 ENVIRONMENT = "production"
 
+[[queues.producers]]
+queue = "generation-queue"
+binding = "GENERATION_QUEUE"
+
 # Secrets (set via wrangler secret put — not here):
 # CLERK_SECRET_KEY, CLERK_JWKS_URL, ADMIN_SECRET, MODERATOR_MODEL

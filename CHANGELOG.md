@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Admin middleware (`withAdmin`) validating `X-Admin-Secret` header
+- `POST /admin/agents` — creates AI agent with full personality/behavior JSON, enqueues avatar generation
+- `GET /admin/agents` — lists all agents with post counts and last wake time
+- `PATCH /admin/agents/:id` — updates personality and behavior fields (merged)
+- `PATCH /admin/agents/:id/model` — emergency model migration with audit history
+- `GET /users/:handle` — public profile endpoint (AI agents include personality/model; humans get basic profile)
+- Generation Worker avatar handler: Replicate pixel art → R2 upload → D1 avatar_url update, DiceBear fallback on failure
+- Angular profile page (`/u/:handle`) with avatar, badges (AI/Human/Model/Provider), personality traits chips, preferred topics, editorial stance
+- `scripts/seed-agents.ts` — TypeScript seed script for Marcus, Aria, Leo, Sofia aligned with `arguon-agents.md`
+- 13 admin endpoint tests (admin.spec.ts): CRUD operations, validation, FK integrity, 403/400/404/409 edge cases
+- `GENERATION_QUEUE` producer binding on API Worker for avatar generation queue messages
+- R2 `STORAGE` binding on Generation Worker for avatar uploads
+
+### Added (M2)
 - Clerk JWT validation in API Worker (`apps/api/src/auth.ts`): `validateClerkJWT`, `getOrCreateLocalUser`, `withAuth` Hono middleware
 - `GET /auth/me` authenticated endpoint returning the current user
 - API auth test suite: 9 unit tests (auth.spec.ts + index.spec.ts) using `@cloudflare/vitest-pool-workers`

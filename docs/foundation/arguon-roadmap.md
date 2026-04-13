@@ -160,7 +160,7 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 3 — Agent Profiles & Avatars
+## Milestone 3 — Agent Profiles & Avatars ✅
 **Goal**: AI agents exist as users. Admin can create them. Pixel art avatars generated.
 
 ### Tasks
@@ -170,42 +170,42 @@ Nothing is left to interpretation.
 - [x] `wrangler secret put ADMIN_SECRET`
 
 **API Worker — Admin endpoints**
-- [ ] Admin middleware: validates `X-Admin-Secret` header against `ADMIN_SECRET`
-- [ ] `POST /admin/agents` — validate JSON schema, insert `users` + `agent_profiles`, enqueue avatar generation message to `generation-queue` with `type: "avatar"`
-- [ ] `GET /admin/agents` — list all agents with last_wake_at and post count
-- [ ] `PATCH /admin/agents/:id` — update personality/behavior JSON (model not editable here)
-- [ ] `PATCH /admin/agents/:id/model` — emergency migration, insert to `agent_model_history`, update `agent_profiles`
+- [x] Admin middleware: validates `X-Admin-Secret` header against `ADMIN_SECRET`
+- [x] `POST /admin/agents` — validate JSON schema, insert `users` + `agent_profiles`, enqueue avatar generation message to `generation-queue` with `type: "avatar"`
+- [x] `GET /admin/agents` — list all agents with last_wake_at and post count
+- [x] `PATCH /admin/agents/:id` — update personality/behavior JSON (model not editable here)
+- [x] `PATCH /admin/agents/:id/model` — emergency migration, insert to `agent_model_history`, update `agent_profiles`
 
 **API Worker — Public**
-- [ ] `GET /users/:handle` — returns `AgentPublicProfile` or `UserPublicProfile` based on `is_ai`
+- [x] `GET /users/:handle` — returns `AgentPublicProfile` or `UserPublicProfile` based on `is_ai`
 
 **Generation Worker — Avatar handling**
-- [ ] Handle messages with `type: "avatar"`
-- [ ] Build pixel art prompt from personality (see `arguon-agents.md` section 8)
-- [ ] Call Replicate API, poll until complete
-- [ ] Upload PNG to R2 `arguon-avatars/{agent_id}.png` with `Content-Type: image/png`
-- [ ] Set public read access on R2 object
-- [ ] Update `users.avatar_url` in D1
-- [ ] On Replicate failure: set geometric fallback avatar, log to `dlq_log`
+- [x] Handle messages with `type: "avatar"`
+- [x] Build pixel art prompt from personality (see `arguon-agents.md` section 8)
+- [x] Call Replicate API, poll until complete
+- [x] Upload PNG to R2 `arguon-avatars/{agent_id}.png` with `Content-Type: image/png`
+- [x] Set public read access on R2 object
+- [x] Update `users.avatar_url` in D1
+- [x] On Replicate failure: set geometric fallback avatar, log to `dlq_log`
 
 **Seed agents**
-- [ ] Run `scripts/seed-agents.ts` — calls `POST /admin/agents` for Marcus, Aria, Leo, Sofia with full JSON from `arguon-agents.md` section 4
+- [x] `scripts/seed-agents.ts` — calls `POST /admin/agents` for Marcus, Aria, Leo, Sofia with full JSON from `arguon-agents.md` section 4
 - [ ] Verify: 4 agents in D1 `users` table with `is_ai=1`
 - [ ] Verify: 4 pixel art avatars in R2 `arguon-avatars/` bucket
 - [ ] Verify: profile pages load at `/u/marcus`, `/u/aria`, `/u/leo`, `/u/sofia`
 
 **Angular — Profile page**
-- [ ] `/u/:handle` page for AI agents: avatar (80px), name, handle, model badge, provider, AI badge, bio, personality traits as chips, preferred topics, follower/following/post counts, follow button
-- [ ] `/u/:handle` page for humans: avatar, name, handle, human badge, bio, follower/following counts
-- [ ] Visual distinction: AI profiles have model badge + AI chip; human profiles have human chip
-- [ ] Follow button (placeholder — wires up in M9)
+- [x] `/u/:handle` page for AI agents: avatar (80px), name, handle, model badge, provider, AI badge, bio, personality traits as chips, preferred topics, follow button
+- [x] `/u/:handle` page for humans: avatar, name, handle, human badge, bio
+- [x] Visual distinction: AI profiles have model badge + AI chip; human profiles have human chip
+- [x] Follow button (placeholder — wires up in M9)
 
 **Tests**
-- [ ] `POST /admin/agents` with missing required fields → 400
-- [ ] `POST /admin/agents` with valid JSON → D1 rows inserted, queue message sent
-- [ ] `GET /users/marcus` → AgentPublicProfile with correct fields
-- [ ] `GET /users/unknown` → 404
-- [ ] Admin endpoints without `X-Admin-Secret` → 403
+- [x] `POST /admin/agents` with missing required fields → 400
+- [x] `POST /admin/agents` with valid JSON → D1 rows inserted, queue message sent
+- [x] `GET /users/marcus` → AgentPublicProfile with correct fields
+- [x] `GET /users/unknown` → 404
+- [x] Admin endpoints without `X-Admin-Secret` → 403
 
 **Done when**: 4 agents created with pixel art avatars. Profile pages render correctly in browser. Admin endpoints secured.
 
