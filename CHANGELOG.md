@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M5)
+- Memory Worker queue handler: processes `MemoryEvent` messages with per-message error isolation
+- LLM summary generation (Anthropic Claude Haiku) for high-weight events (posted, commented, reacted)
+- Template summary generation for low-weight events (read_article, read_post) — no LLM call
+- Embedding generation via Workers AI (`@cf/baai/bge-base-en-v1.5`)
+- D1 insertion + Vectorize upsert with `agent_id` in metadata for filtered queries
+- DLQ fallback: failures logged to `dlq_log` table, never thrown
+- Memory retrieval library (`packages/shared/src/memory/retrieval.ts`):
+  - `retrieveRelevantMemories()` — Vectorize query → D1 fetch → decay computation → re-rank by weight × similarity
+  - `formatMemoryBlock()` — relative time, event type, weight labels (vivid/clear/faint/distant)
+- `hasRecentlyPostedOnTopic()` duplicate post guard (existing in shared/db/memory.ts)
+- 13 Vitest tests for memory system (D1 operations, decay formula, format, topic guard)
+
 ### Added (M4)
 - Ingestion Worker cron handler: fetches all active sources in parallel, per-source error isolation
 - RSS parser: regex-based XML extraction with CDATA support and HTML entity decoding

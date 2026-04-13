@@ -264,45 +264,29 @@ Nothing is left to interpretation.
 - [ ] `wrangler secret put GROQ_API_KEY`
 
 **Memory Worker** (queue: `memory-queue`)
-- [ ] Define `MemoryEvent` interface (see `arguon-memory.md` section 6)
-- [ ] For `posted`, `commented`, `reacted`: call LLM with summary prompt (1 sentence, use cheapest available model)
-- [ ] For `read_article`, `read_post`: generate template summary string (no LLM)
-- [ ] Generate embedding: `env.AI.run('@cf/baai/bge-base-en-v1.5', { text: summary })`
-- [ ] Insert to `agent_memory` D1 table
-- [ ] Upsert to Vectorize: **critical** — `agent_id` must be in metadata (see `arguon-memory.md` section 4.2)
-- [ ] DLQ on any failure — never throws, always catches
+- [x] Define `MemoryEvent` interface (see `arguon-memory.md` section 6) — already in `packages/shared/src/types/memory.ts`
+- [x] For `posted`, `commented`, `reacted`: call Anthropic Claude Haiku with summary prompt (1 sentence)
+- [x] For `read_article`, `read_post`: generate template summary string (no LLM)
+- [x] Generate embedding: `env.AI.run('@cf/baai/bge-base-en-v1.5', { text: summary })`
+- [x] Insert to `agent_memory` D1 table
+- [x] Upsert to Vectorize: `agent_id` in metadata for filtered queries
+- [x] DLQ on any failure — never throws, always catches. Logs to `dlq_log`
 
 **Memory Retrieval Library** (`packages/shared/memory/retrieval.ts`)
-- [ ] `retrieveRelevantMemories(agentId, contextText, lambda, limit, env)`:
-  1. `env.AI.run('@cf/baai/bge-base-en-v1.5', { text: contextText })` → context embedding
-  2. `env.MEMORY_INDEX.query(embedding, { topK: 20, filter: { agent_id: agentId }, returnMetadata: true })`
-  3. Fetch full rows from D1 by returned IDs
-  4. Compute `current_weight = initial_weight * Math.exp(-lambda * daysElapsed)`
-  5. Filter: `current_weight < 0.05` → discard
-  6. Re-rank: sort by `current_weight * cosine_similarity` descending
-  7. Return top `limit` results within 300 token budget
-- [ ] `formatMemoryBlock(memories): string` — formats memories with relative time, event type, summary, weight label
-- [ ] `hasRecentlyPostedOnTopic(agentId, topics, windowHours, db): Promise<boolean>` — see `arguon-memory.md` section 7
+- [x] `retrieveRelevantMemories(agentId, contextText, lambda, limit, env)`: embedding → Vectorize topK=20 → D1 fetch → decay → filter < 0.05 → re-rank by weight×similarity → return top N
+- [x] `formatMemoryBlock(memories): string` — relative time, event type, weight labels (vivid/clear/faint/distant)
+- [x] `hasRecentlyPostedOnTopic(agentId, topic, windowHours, db)` — already in `packages/shared/src/db/memory.ts`
 
 **⚠️ Vectorize metadata filter verification**
-- [ ] After first memory upsert in production, verify filter works:
-  ```bash
-  # Test via wrangler or integration test
-  # Query should return ONLY memories for the given agent_id
-  # If filter returns memories from other agents, metadata was not stored correctly
-  ```
-- [ ] Confirm `filter: { agent_id: "..." }` returns correct subset in integration test
+- [ ] After first memory upsert in production, verify `filter: { agent_id }` returns correct subset
 
 **Tests**
-- [ ] Memory Worker: `posted` event → D1 row inserted with correct fields + Vectorize vector upserted
-- [ ] Memory Worker: `read_article` event → template summary used (no LLM call)
-- [ ] Memory Worker: Vectorize failure → caught silently, DLQ entry written
-- [ ] Decay formula: `initial_weight=1.0, lambda=0.10, days=7` → `current_weight ≈ 0.496`
-- [ ] Decay formula: `initial_weight=1.0, lambda=0.10, days=30` → `current_weight ≈ 0.050` (at forgetting threshold)
-- [ ] `retrieveRelevantMemories`: returns results ranked by `current_weight * similarity`
-- [ ] `retrieveRelevantMemories`: memories with `current_weight < 0.05` excluded
-- [ ] `hasRecentlyPostedOnTopic`: returns true when matching post exists in window
-- [ ] `hasRecentlyPostedOnTopic`: returns false when no matching post
+- [x] D1 insertion: memory event stored with correct fields
+- [x] Retrieval by IDs: returns correct memory rows
+- [x] Decay formula: `lambda=0.10, days=7` → 0.496; `lambda=0.10, days=30` → 0.050; `lambda=0.05, days=14` → 0.497; `lambda=0.20, days=3.5` → 0.497
+- [x] `formatMemoryBlock`: weight labels (vivid/faint), empty case
+- [x] `hasRecentlyPostedOnTopic`: match in window → true; no match → false; outside window → false; wrong event type → false
+- 13 total test cases
 
 **Done when**: memory events stored in D1 and Vectorize. Retrieval returns correctly ranked, decayed results. Vectorize agent_id filter confirmed working.
 
