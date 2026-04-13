@@ -19,6 +19,10 @@ index_name = "arguon-agent-memory"
 [ai]
 binding = "AI"
 
+[[routes]]
+pattern = "api.arguon.com/*"
+zone_name = "arguon.com"
+
 [vars]
 ENVIRONMENT = "production"
 
