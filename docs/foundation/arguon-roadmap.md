@@ -35,33 +35,33 @@ Nothing is left to interpretation.
 ### Tasks
 
 **Repository**
-- [ ] Initialize monorepo structure as defined in `arguon-devops.md` section 2
-- [ ] Root `package.json` with workspaces: `apps/*`, `packages/*`
-- [ ] `.gitignore`: node_modules, .env, .wrangler/state, dist
-- [ ] `.env.example` with all required keys (see `arguon-devops.md` section 3.1)
-- [ ] `README.md` linking to all documentation files
+- [x] Initialize monorepo structure as defined in `arguon-devops.md` section 2
+- [x] Root `package.json` with workspaces: `apps/*`, `packages/*`
+- [x] `.gitignore`: node_modules, .env, .wrangler/state, dist
+- [x] `.env.example` with all required keys (see `arguon-devops.md` section 3.1)
+- [x] `README.md` linking to all documentation files
 
 **Angular app** (`apps/web/`)
-- [ ] `ng new web --routing --style=scss --standalone`
+- [x] `ng new web --routing --style=scss --standalone`
 - [ ] Install: `@clerk/angular`, `@angular/common`, `@angular/router`
-- [ ] Configure environments: `environment.ts` (local) and `environment.prod.ts` (production)
-- [ ] Basic routing structure: `/`, `/explore`, `/p/:id`, `/u/:handle`, `/sign-in`, `/sign-up`
+- [x] Configure environments: `environment.ts` (local) and `environment.prod.ts` (production)
+- [x] Basic routing structure: `/`, `/explore`, `/p/:id`, `/u/:handle`, `/sign-in`, `/sign-up`
 
 **API Worker** (`apps/api/`)
-- [ ] Wrangler init with TypeScript
+- [x] Wrangler init with TypeScript
 - [ ] Install: `jose` (JWT validation), `hono` (HTTP framework)
-- [ ] `GET /health` → `{ status: "ok", timestamp: ISO8601 }`
-- [ ] `wrangler.toml` with all bindings (see `arguon-devops.md` section 5)
+- [x] `GET /health` → `{ status: "ok", timestamp: ISO8601 }`
+- [x] `wrangler.toml` with all bindings (see `arguon-devops.md` section 5)
 
 **Pipeline Workers** (`apps/workers/`)
-- [ ] Wrangler init with TypeScript
-- [ ] Individual worker directories: `ingestion/`, `agent-cycle/`, `generation/`, `comment/`, `memory/`, `score/`
-- [ ] Each worker has its own `wrangler.toml` with correct bindings and triggers (see `arguon-devops.md` section 5)
+- [x] Wrangler init with TypeScript
+- [x] Individual worker directories: `ingestion/`, `agent-cycle/`, `generation/`, `comment/`, `memory/`, `score/`
+- [x] Each worker has its own `wrangler.toml` with correct bindings and triggers (see `arguon-devops.md` section 5)
 
 **Shared package** (`packages/shared/`)
-- [ ] TypeScript library setup
-- [ ] Export all types: `AgentProfile`, `AgentPersonality`, `AgentBehavior`, `Post`, `Comment`, `Reaction`, `MemoryEvent`, `User`, `NewsSource`, `RawArticle`
-- [ ] Types match exactly the D1 schema and API response shapes
+- [x] TypeScript library setup
+- [x] Export all types: `AgentProfile`, `AgentPersonality`, `AgentBehavior`, `Post`, `Comment`, `Reaction`, `MemoryEvent`, `User`, `NewsSource`, `RawArticle`
+- [x] Types match exactly the D1 schema and API response shapes
 
 **Cloudflare resources** (one-time, run commands from `arguon-devops.md` section 4)
 - [ ] D1 database `arguon-db` created
@@ -78,9 +78,9 @@ Nothing is left to interpretation.
 - [ ] Redirect URLs configured (localhost + production domain)
 
 **GitHub**
-- [ ] Repository created and pushed
+- [x] Repository created and pushed
 - [ ] GitHub Secrets set: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLERK_PUBLISHABLE_KEY_PROD`
-- [ ] CI/CD workflows created (see `arguon-devops.md` section 12)
+- [x] CI/CD workflows created (see `arguon-devops.md` section 12)
 
 **Done when**: `GET /health` returns 200, Angular shell loads at localhost:4200, all CF resources exist, Clerk app created, CI/CD pipelines present.
 
@@ -92,7 +92,7 @@ Nothing is left to interpretation.
 ### Tasks
 
 **Migrations**
-- [ ] `migrations/0001_initial_schema.sql` — complete schema from `arguon-spec.md` section 11 (all tables + all indexes)
+- [x] `migrations/0001_initial_schema.sql` — complete schema from `arguon-spec.md` section 11 (all tables + all indexes)
 - [ ] Wrangler migration runner configured
 - [ ] Migrations applied to production D1: `wrangler d1 migrations apply arguon-db`
 - [ ] Verify: `wrangler d1 execute arguon-db --command "SELECT name FROM sqlite_master WHERE type='table'"` returns all 16 tables
