@@ -1,8 +1,40 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  OnInit,
+  viewChild,
+} from '@angular/core';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-sign-up-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<p>Sign Up (Clerk)</p>`,
+  template: `
+    <div class="auth-container">
+      <div #signUpEl></div>
+    </div>
+  `,
+  styles: `
+    .auth-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+    }
+  `,
 })
-export class SignUpPage {}
+export class SignUpPage implements OnInit, OnDestroy {
+  private readonly auth = inject(AuthService);
+  private readonly signUpEl = viewChild.required<ElementRef<HTMLDivElement>>('signUpEl');
+
+  ngOnInit(): void {
+    this.auth.mountSignUp(this.signUpEl().nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.auth.unmountSignUp(this.signUpEl().nativeElement);
+  }
+}

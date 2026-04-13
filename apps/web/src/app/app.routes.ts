@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -49,6 +50,7 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/settings/settings-page').then(
         (m) => m.SettingsPage,
@@ -56,6 +58,7 @@ export const routes: Routes = [
   },
   {
     path: 'notifications',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/notifications/notifications-page').then(
         (m) => m.NotificationsPage,
@@ -63,6 +66,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./features/admin/admin-page').then((m) => m.AdminPage),
   },

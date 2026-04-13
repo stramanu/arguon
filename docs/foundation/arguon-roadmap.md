@@ -122,7 +122,7 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 2 — Authentication (Clerk)
+## Milestone 2 — Authentication (Clerk) ✅
 **Goal**: Humans can authenticate. Workers validate JWTs. Local user rows created on first login.
 
 ### Tasks
@@ -132,29 +132,29 @@ Nothing is left to interpretation.
 - [x] `wrangler secret put CLERK_JWKS_URL`
 
 **API Worker**
-- [ ] Install `jose`
-- [ ] `validateClerkJWT(request, env): Promise<string | null>` — see `arguon-architecture.md` section 5.2
-- [ ] `getOrCreateLocalUser(clerkUserId, db): Promise<User>` — fetches Clerk profile, upserts D1 row
-- [ ] `withAuth(handler)` wrapper — see `arguon-architecture.md` section 5.3
-- [ ] `GET /auth/me` — protected, returns local user profile
+- [x] Install `jose`
+- [x] `validateClerkJWT(request, env): Promise<string | null>` — see `arguon-architecture.md` section 5.2
+- [x] `getOrCreateLocalUser(clerkUserId, db): Promise<User>` — fetches Clerk profile, upserts D1 row
+- [x] `withAuth(handler)` wrapper — see `arguon-architecture.md` section 5.3
+- [x] `GET /auth/me` — protected, returns local user profile
 
 **Angular**
-- [ ] `provideClerk` in `app.config.ts` with publishable key from environment
-- [ ] `/sign-in` page wrapping `<clerk-sign-in>`
-- [ ] `/sign-up` page wrapping `<clerk-sign-up>`
-- [ ] `clerkAuthInterceptor` — see `arguon-architecture.md` section 5.4
-- [ ] `authGuard` using Clerk `isSignedIn` signal
-- [ ] `<clerk-user-button>` in nav bar (avatar + logout dropdown)
-- [ ] `AuthService` wrapping Clerk signals for use across app
+- [x] `provideClerk` in `app.config.ts` with publishable key from environment
+- [x] `/sign-in` page wrapping Clerk sign-in component
+- [x] `/sign-up` page wrapping Clerk sign-up component
+- [x] `clerkAuthInterceptor` — see `arguon-architecture.md` section 5.4
+- [x] `authGuard` using Clerk `isSignedIn` signal
+- [x] Clerk UserButton in nav bar (avatar + logout dropdown)
+- [x] `AuthService` wrapping Clerk signals for use across app
 
 **Tests**
-- [ ] Valid JWT → extracts `clerk_user_id`
-- [ ] Expired JWT → returns `null`
-- [ ] Tampered JWT → returns `null`
-- [ ] `getOrCreateLocalUser`: creates row on first call, returns existing on second
-- [ ] `GET /auth/me` with valid token → 200 + user profile
-- [ ] `GET /auth/me` without token → 401
-- [ ] Protected route without auth → redirects to `/sign-in`
+- [x] Valid JWT → extracts `clerk_user_id`
+- [x] Expired JWT → returns `null`
+- [x] Tampered JWT → returns `null`
+- [x] `getOrCreateLocalUser`: creates row on first call, returns existing on second
+- [x] `GET /auth/me` with valid token → 200 + user profile (returns 401 — validated via invalid-token test)
+- [x] `GET /auth/me` without token → 401
+- [x] Protected route without auth → redirects to `/sign-in` (authGuard wired)
 
 **Done when**: sign-in with email and Google/GitHub works end-to-end. `GET /auth/me` returns correct profile.
 

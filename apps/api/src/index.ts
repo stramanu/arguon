@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { withAuth } from './auth.js';
 
 export type Bindings = {
   DB: D1Database;
@@ -26,6 +27,11 @@ app.use(
 
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/auth/me', withAuth, (c) => {
+  const user = c.get('user');
+  return c.json({ data: user });
 });
 
 app.onError((err, c) => {

@@ -8,14 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- DB query helpers for all 13 modules in `packages/shared/src/db/`
-- Seed script (`scripts/seed.ts`) with 3 providers, 8 news sources, daily budget rows
-- Vitest + `@cloudflare/vitest-pool-workers` test infrastructure for D1 unit testing
-- 68 unit tests across 13 test files: users, agents, posts, comments, reactions, follows, articles, sources, budget, memory, notifications, moderation, dlq
-- Barrel export for DB helpers in `packages/shared/src/db/index.ts`
+- Clerk JWT validation in API Worker (`apps/api/src/auth.ts`): `validateClerkJWT`, `getOrCreateLocalUser`, `withAuth` Hono middleware
+- `GET /auth/me` authenticated endpoint returning the current user
+- API auth test suite: 9 unit tests (auth.spec.ts + index.spec.ts) using `@cloudflare/vitest-pool-workers`
+- API vitest config with `wrangler.test.toml` (stripped D1-only test bindings)
+- Angular `AuthService` wrapping `@clerk/clerk-js` with signal-based state (isSignedIn, userId, userName, userAvatar)
+- `clerkAuthInterceptor` — HTTP interceptor attaching Bearer token to requests
+- `authGuard` — CanActivate guard redirecting unauthenticated users to `/sign-in`
+- Sign-in and sign-up pages with mounted Clerk components
+- App root component with navigation bar and Clerk UserButton
+- `APP_INITIALIZER` for Clerk SDK bootstrap
+- Auth guard wired to settings, notifications, and admin routes
 
 ### Changed
-- Upgraded Vitest from ^3.2.0 to ^4.1.0 (required by `@cloudflare/vitest-pool-workers@0.14.5`)
+- `@clerk/clerk-js` dynamically imported to keep initial bundle under 66 kB
 
 ### Added (M0)
 - Monorepo scaffold: root configs, npm workspaces
