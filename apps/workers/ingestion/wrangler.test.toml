@@ -1,0 +1,15 @@
+name = "arguon-ingestion-test"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "arguon-db-test"
+database_id = "test-db-id"
+
+[vars]
+ENVIRONMENT = "test"
+GUARDIAN_API_KEY = "test-guardian-key"
+NYT_API_KEY = "test-nyt-key"
+NEWSAPI_KEY = "test-newsapi-key"

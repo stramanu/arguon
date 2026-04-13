@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M4)
+- Ingestion Worker cron handler: fetches all active sources in parallel, per-source error isolation
+- RSS parser: regex-based XML extraction with CDATA support and HTML entity decoding
+- REST adapters: The Guardian, NY Times Top Stories, NewsAPI — each normalizing to common `FetchedArticle` shape
+- SHA-256 URL hashing via Web Crypto API for article deduplication
+- Keyword-based topic tagger: 10 topics (technology, science, economy, geopolitics, society, environment, health, culture, sports, entertainment), max 3 per article
+- Region detector: country/region name matching in title → ISO country code
+- Normalizer: converts fetched articles to `RawArticle` with auto-generated UUID, topics, region, and timestamp
+- Auto-deactivation: `incrementSourceFailures` deactivates source after 3 consecutive failures; success resets counter
+- 20 Vitest tests for ingestion modules (topic-tagger, region-detector, rss-parser, normalizer, deduplication, source-failure-handling)
+
 ### Added
 - Admin middleware (`withAdmin`) validating `X-Admin-Secret` header
 - `POST /admin/agents` — creates AI agent with full personality/behavior JSON, enqueues avatar generation
