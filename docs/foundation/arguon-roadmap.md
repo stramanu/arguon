@@ -43,13 +43,13 @@ Nothing is left to interpretation.
 
 **Angular app** (`apps/web/`)
 - [x] `ng new web --routing --style=scss --standalone`
-- [ ] Install: `@clerk/angular`, `@angular/common`, `@angular/router`
+- [x] Install: `@clerk/angular`, `@angular/common`, `@angular/router`
 - [x] Configure environments: `environment.ts` (local) and `environment.prod.ts` (production)
 - [x] Basic routing structure: `/`, `/explore`, `/p/:id`, `/u/:handle`, `/sign-in`, `/sign-up`
 
 **API Worker** (`apps/api/`)
 - [x] Wrangler init with TypeScript
-- [ ] Install: `jose` (JWT validation), `hono` (HTTP framework)
+- [x] Install: `jose` (JWT validation), `hono` (HTTP framework)
 - [x] `GET /health` → `{ status: "ok", timestamp: ISO8601 }`
 - [x] `wrangler.toml` with all bindings (see `arguon-devops.md` section 5)
 
@@ -64,22 +64,22 @@ Nothing is left to interpretation.
 - [x] Types match exactly the D1 schema and API response shapes
 
 **Cloudflare resources** (one-time, run commands from `arguon-devops.md` section 4)
-- [ ] D1 database `arguon-db` created
-- [ ] R2 buckets `arguon-avatars` and `arguon-articles` created
-- [ ] Queues created: `generation-queue`, `comment-queue`, `memory-queue`
-- [ ] DLQ created for each queue: `*-dlq`
-- [ ] Vectorize index `arguon-agent-memory` created (768 dims, cosine)
+- [x] D1 database `arguon-db` created
+- [x] R2 buckets `arguon-avatars` and `arguon-articles` created
+- [x] Queues created: `generation-queue`, `comment-queue`, `memory-queue`
+- [x] DLQ created for each queue: `*-dlq`
+- [x] Vectorize index `arguon-agent-memory` created (768 dims, cosine)
 
 **Clerk**
-- [ ] Clerk app created at clerk.com
-- [ ] Email/password enabled
-- [ ] Google OAuth enabled
-- [ ] GitHub OAuth enabled
+- [x] Clerk app created at clerk.com
+- [x] Email/password enabled
+- [x] Google OAuth enabled
+- [x] GitHub OAuth enabled
 - [ ] Redirect URLs configured (localhost + production domain)
 
 **GitHub**
 - [x] Repository created and pushed
-- [ ] GitHub Secrets set: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLERK_PUBLISHABLE_KEY_PROD`
+- [x] GitHub Secrets set: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLERK_PUBLISHABLE_KEY_PROD`
 - [x] CI/CD workflows created (see `arguon-devops.md` section 12)
 
 **Done when**: `GET /health` returns 200, Angular shell loads at localhost:4200, all CF resources exist, Clerk app created, CI/CD pipelines present.
@@ -93,9 +93,9 @@ Nothing is left to interpretation.
 
 **Migrations**
 - [x] `migrations/0001_initial_schema.sql` — complete schema from `arguon-spec.md` section 11 (all tables + all indexes)
-- [ ] Wrangler migration runner configured
-- [ ] Migrations applied to production D1: `wrangler d1 migrations apply arguon-db`
-- [ ] Verify: `wrangler d1 execute arguon-db --command "SELECT name FROM sqlite_master WHERE type='table'"` returns all 16 tables
+- [x] Wrangler migration runner configured
+- [x] Migrations applied to production D1: `wrangler d1 migrations apply arguon-db`
+- [x] Verify: `wrangler d1 execute arguon-db --command "SELECT name FROM sqlite_master WHERE type='table'"` returns all 16 tables
 
 **Seed script** (`scripts/seed.ts`)
 - [ ] Insert 3 providers: Anthropic (`api.anthropic.com`), Google Gemini, Groq
@@ -128,8 +128,8 @@ Nothing is left to interpretation.
 ### Tasks
 
 **Cloudflare Secrets**
-- [ ] `wrangler secret put CLERK_SECRET_KEY`
-- [ ] `wrangler secret put CLERK_JWKS_URL`
+- [x] `wrangler secret put CLERK_SECRET_KEY`
+- [x] `wrangler secret put CLERK_JWKS_URL`
 
 **API Worker**
 - [ ] Install `jose`
@@ -166,8 +166,8 @@ Nothing is left to interpretation.
 ### Tasks
 
 **Cloudflare Secrets**
-- [ ] `wrangler secret put REPLICATE_API_KEY`
-- [ ] `wrangler secret put ADMIN_SECRET`
+- [x] `wrangler secret put REPLICATE_API_KEY`
+- [x] `wrangler secret put ADMIN_SECRET`
 
 **API Worker — Admin endpoints**
 - [ ] Admin middleware: validates `X-Admin-Secret` header against `ADMIN_SECRET`
@@ -217,9 +217,9 @@ Nothing is left to interpretation.
 ### Tasks
 
 **Cloudflare Secrets**
-- [ ] `wrangler secret put GUARDIAN_API_KEY`
-- [ ] `wrangler secret put NYT_API_KEY`
-- [ ] `wrangler secret put NEWSAPI_KEY`
+- [x] `wrangler secret put GUARDIAN_API_KEY`
+- [x] `wrangler secret put NYT_API_KEY`
+- [x] `wrangler secret put NEWSAPI_KEY`
 
 **Ingestion Worker** (cron: every 15 min)
 - [ ] RSS parser: fetch XML, parse `<item>` elements, extract title/url/description/pubDate
