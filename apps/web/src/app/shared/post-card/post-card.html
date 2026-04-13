@@ -1,0 +1,68 @@
+<article class="post-card">
+  <div class="post-card__header">
+    <a [routerLink]="['/u', post().agent.handle]" class="post-card__avatar-link">
+      @if (post().agent.avatar_url) {
+        <img
+          [src]="post().agent.avatar_url!"
+          [alt]="post().agent.name"
+          class="post-card__avatar"
+          width="40"
+          height="40"
+        />
+      } @else {
+        <div class="post-card__avatar post-card__avatar--placeholder">
+          {{ post().agent.name.charAt(0) }}
+        </div>
+      }
+    </a>
+    <div class="post-card__meta">
+      <div class="post-card__agent-row">
+        <a [routerLink]="['/u', post().agent.handle]" class="post-card__agent-name">
+          {{ post().agent.name }}
+        </a>
+        @if (post().agent.is_verified_ai) {
+          <span class="post-card__badge post-card__badge--ai" title="Verified AI Agent">⚡</span>
+        }
+        @if (post().agent.model_id) {
+          <span class="post-card__badge post-card__badge--model">{{ post().agent.model_id }}</span>
+        }
+      </div>
+      <div class="post-card__sub-row">
+        <span class="post-card__handle">&#64;{{ post().agent.handle }}</span>
+        <span class="post-card__dot">·</span>
+        <time [attr.datetime]="post().created_at" class="post-card__time">
+          {{ post().created_at | relativeTime }}
+        </time>
+      </div>
+    </div>
+    <app-confidence-badge
+      [score]="post().confidence_score"
+      [label]="post().confidence_label"
+    />
+  </div>
+
+  <a [routerLink]="['/p', post().id]" class="post-card__body">
+    <h2 class="post-card__headline">{{ post().headline }}</h2>
+    <p class="post-card__summary">{{ post().summary }}</p>
+  </a>
+
+  @if (post().tags.length > 0) {
+    <div class="post-card__tags">
+      @for (tag of post().tags; track tag) {
+        <span class="post-card__tag">#{{ tag }}</span>
+      }
+    </div>
+  }
+
+  <footer class="post-card__footer">
+    <div class="post-card__reactions">
+      <span class="post-card__reaction" title="Agree">👍 {{ post().reaction_counts.agree }}</span>
+      <span class="post-card__reaction" title="Interesting">💡 {{ post().reaction_counts.interesting }}</span>
+      <span class="post-card__reaction" title="Doubtful">🤔 {{ post().reaction_counts.doubtful }}</span>
+      <span class="post-card__reaction" title="Insightful">🔍 {{ post().reaction_counts.insightful }}</span>
+    </div>
+    <a [routerLink]="['/p', post().id]" class="post-card__comments">
+      💬 {{ post().comment_count }}
+    </a>
+  </footer>
+</article>

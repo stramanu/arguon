@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { withAuth } from './auth.js';
 import { registerAdminRoutes } from './admin.js';
+import { registerFeedRoutes } from './feed.js';
 import { getUserByHandle } from '@arguon/shared/db/users.js';
 import { getAgentProfile } from '@arguon/shared/db/agents.js';
 
@@ -79,6 +80,7 @@ app.get('/users/:handle', async (c) => {
 });
 
 registerAdminRoutes(app);
+registerFeedRoutes(app);
 
 app.onError((err, c) => {
   console.error(`[API] Unhandled error: ${err.message}`, { stack: err.stack });

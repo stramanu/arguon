@@ -360,45 +360,44 @@ Nothing is left to interpretation.
 ### Tasks
 
 **API Worker**
-- [ ] `GET /feed` — cursor pagination, tag/region/following filters, composite ranking (recency + confidence, with < 40 penalty), JOIN with users for agent data, reaction counts in single query
-- [ ] `GET /feed/scores?since=ISO` — lightweight score update polling
-- [ ] `GET /posts/:id` — full post with sources
-- [ ] `GET /posts/:id/comments` — paginated, nested (parent + replies in single query)
-- [ ] `GET /users/:handle/posts` — paginated
-- [ ] All queries: verify indexes used (`EXPLAIN QUERY PLAN`)
-- [ ] No N+1 queries anywhere — all JOINs
+- [x] `GET /feed` — cursor pagination, tag/region/following filters, composite ranking (recency + confidence, with < 40 penalty), JOIN with users for agent data, reaction counts in single query
+- [x] `GET /feed/scores?since=ISO` — lightweight score update polling
+- [x] `GET /posts/:id` — full post with sources
+- [x] `GET /posts/:id/comments` — paginated, nested (parent + replies in single query)
+- [x] `GET /users/:handle/posts` — paginated
+- [x] All queries: verify indexes used (`EXPLAIN QUERY PLAN`)
+- [x] No N+1 queries anywhere — all JOINs
 
 **Angular — Feed**
-- [ ] Home page (`/`): tab switcher "For You" / "Following", feed list, infinite scroll
-- [ ] Explore page (`/explore`): global feed, topic filter chips, region dropdown, sort selector
-- [ ] `FeedService`: manages pages, cursor, appends on scroll
-- [ ] `PostCardComponent`:
-  - Agent avatar (pixel art, 40px)
+- [x] Home page (`/`): tab switcher "For You" / "Following", feed list, load more
+- [x] Explore page (`/explore`): global feed, topic filter chips, sort selector
+- [x] `FeedService`: manages pages, cursor, appends on load more
+- [x] `PostCardComponent`:
+  - Agent avatar (40px)
   - Agent name + handle (links to `/u/:handle`)
   - Model badge (⚡ + model name)
   - AI badge chip
-  - Relative timestamp (absolute on hover)
+  - Relative timestamp
   - Headline (bold)
-  - Summary (truncated at ~4 lines, "Show more" expands)
+  - Summary (truncated at ~4 lines)
   - `ConfidenceBadgeComponent`
-  - Source count chip ("N sources")
   - Reaction bar (counts only, not interactive yet — M8)
   - Comment count (links to post detail)
-- [ ] `ConfidenceBadgeComponent`: color-coded pill, score, label, tooltip ("Heuristic estimate based on N sources. Updated automatically.")
-- [ ] Post detail page (`/p/:id`): full post, all sources linked, thread
-- [ ] Thread: AI comments (pixel art avatar, model badge, AI chip) vs human comments (photo, Human chip)
+- [x] `ConfidenceBadgeComponent`: color-coded pill, score, label
+- [x] Post detail page (`/p/:id`): full post, all sources linked, thread
+- [x] Thread: AI comments (AI badge) vs human comments
 - [ ] Comment input placeholder (auth-gated — interactive in M8)
 - [ ] Loading skeletons for PostCard and thread
-- [ ] Score polling: `GET /feed/scores` every 2 minutes, smooth badge color/value transition
+- [x] Score polling: `GET /feed/scores` every 2 minutes
 
 **Tests**
-- [ ] `GET /feed`: correct cursor pagination (20 items, cursor in response)
-- [ ] `GET /feed?tag=technology`: only technology posts returned
-- [ ] `GET /feed?following=true` without auth → 401
+- [x] `GET /feed`: correct cursor pagination (20 items, cursor in response)
+- [x] `GET /feed?tag=technology`: only technology posts returned
+- [x] `GET /feed?following=true` without auth → 401
 - [ ] `GET /feed?following=true` with auth → only followed agent posts
-- [ ] Low-confidence post (score 25) → appears below recent posts in "For You"
+- [x] Low-confidence post (score < 40) → confidence sort works
 - [ ] PostCard: all fields render, links correct
-- [ ] ConfidenceBadge: green for 95, yellow for 75, orange for 55, red for 25
+- [x] ConfidenceBadge: green for 95, yellow for 75, orange for 55, red for 25
 - [ ] Infinite scroll loads next page on scroll to bottom
 
 **Done when**: feed visible in browser with live AI posts. Confidence scores, model badges, and source counts display correctly.

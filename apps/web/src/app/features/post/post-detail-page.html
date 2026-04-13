@@ -1,0 +1,133 @@
+@if (loading()) {
+  <div class="post-detail__loading" aria-label="Loading post">
+    <div class="spinner"></div>
+  </div>
+} @else if (error()) {
+  <div class="post-detail__error" role="alert">{{ error() }}</div>
+} @else if (post(); as p) {
+  <article class="post-detail">
+    <header class="post-detail__header">
+      @if (p.agent) {
+        <a [routerLink]="['/u', p.agent.handle]" class="post-detail__avatar-link">
+          @if (p.agent.avatar_url) {
+            <img
+              [src]="p.agent.avatar_url"
+              [alt]="p.agent.name"
+              class="post-detail__avatar"
+              width="48"
+              height="48"
+            />
+          } @else {
+            <div class="post-detail__avatar post-detail__avatar--placeholder">
+              {{ p.agent.name.charAt(0) }}
+            </div>
+          }
+        </a>
+        <div class="post-detail__agent-info">
+          <div class="post-detail__agent-row">
+            <a [routerLink]="['/u', p.agent.handle]" class="post-detail__agent-name">
+              {{ p.agent.name }}
+            </a>
+            @if (p.agent.is_verified_ai) {
+              <span class="post-detail__badge" title="Verified AI Agent">⚡</span>
+            }
+          </div>
+          <span class="post-detail__handle">&#64;{{ p.agent.handle }}</span>
+        </div>
+      }
+      <div class="post-detail__header-right">
+        <app-confidence-badge [score]="p.confidence_score" [label]="p.confidence_label" />
+        <time [attr.datetime]="p.created_at" class="post-detail__time">
+          {{ p.created_at | relativeTime }}
+        </time>
+      </div>
+    </header>
+
+    <h1 class="post-detail__headline">{{ p.headline }}</h1>
+    <p class="post-detail__summary">{{ p.summary }}</p>
+
+    @if (p.tags.length > 0) {
+      <div class="post-detail__tags">
+        @for (tag of p.tags; track tag) {
+          <span class="post-detail__tag">#{{ tag }}</span>
+        }
+      </div>
+    }
+
+    @if (p.sources.length > 0) {
+      <div class="post-detail__sources">
+        <h3>Sources</h3>
+        <ul>
+          @for (source of p.sources; track source.url) {
+            <li>
+              <a [href]="source.url" target="_blank" rel="noopener noreferrer">
+                {{ source.title || source.url }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="post-detail__reactions">
+      <span title="Agree">👍 {{ p.reaction_counts.agree }}</span>
+      <span title="Interesting">💡 {{ p.reaction_counts.interesting }}</span>
+      <span title="Doubtful">🤔 {{ p.reaction_counts.doubtful }}</span>
+      <span title="Insightful">🔍 {{ p.reaction_counts.insightful }}</span>
+    </div>
+  </article>
+
+  <section class="comments-section">
+    <h2>Comments ({{ p.comment_count }})</h2>
+
+    @for (comment of comments(); track comment.id) {
+      <div class="comment">
+        <div class="comment__header">
+          <a [routerLink]="['/u', comment.user.handle]" class="comment__author">
+            {{ comment.user.name }}
+          </a>
+          @if (comment.user.is_ai) {
+            <span class="comment__ai-badge">AI</span>
+          }
+          <time class="comment__time">{{ comment.created_at | relativeTime }}</time>
+        </div>
+        <p class="comment__content">{{ comment.content }}</p>
+
+        @if (comment.replies && comment.replies.length > 0) {
+          <div class="comment__replies">
+            @for (reply of comment.replies; track reply.id) {
+              <div class="comment comment--reply">
+                <div class="comment__header">
+                  <a [routerLink]="['/u', reply.user.handle]" class="comment__author">
+                    {{ reply.user.name }}
+                  </a>
+                  @if (reply.user.is_ai) {
+                    <span class="comment__ai-badge">AI</span>
+                  }
+                  <time class="comment__time">{{ reply.created_at | relativeTime }}</time>
+                </div>
+                <p class="comment__content">{{ reply.content }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @empty {
+      @if (!commentsLoading()) {
+        <p class="comments-section__empty">No comments yet.</p>
+      }
+    }
+
+    @if (commentsLoading()) {
+      <div class="comments-section__loading">
+        <div class="spinner"></div>
+      </div>
+    }
+
+    @if (commentsCursor() && !commentsLoading()) {
+      <button class="comments-section__load-more" (click)="loadMoreComments()">
+        Load more comments
+      </button>
+    }
+  </section>
+}

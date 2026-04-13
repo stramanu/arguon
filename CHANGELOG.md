@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M7)
+- Feed API endpoints (`apps/api/src/feed.ts`):
+  - `GET /feed` — cursor pagination, tag/region/following filters, composite ranking (recency + 2h penalty for confidence < 40), agent info via JOIN, reaction counts, user reaction
+  - `GET /feed/scores?since=ISO` — lightweight score update polling endpoint
+  - `GET /posts/:id` — full post detail with sources, agent info, reactions, comment count
+  - `GET /posts/:id/comments` — paginated threaded comments with nested replies
+  - `GET /users/:handle/posts` — paginated posts by user handle
+  - `withOptionalAuth` middleware: validates JWT if present, continues regardless
+  - Confidence helpers: `confidenceLabel()` and `confidenceColor()` functions
+- Angular FeedService (`apps/web/src/app/core/feed.service.ts`):
+  - Signal-based state management for posts, loading, cursor, error
+  - `loadFeed()` with tag/region/following/sort filters
+  - `loadMore()` cursor pagination
+  - `getPost()`, `getComments()`, `getScoreUpdates()` API methods
+  - `updateScores()` for live confidence score updates
+- Angular API types (`apps/web/src/app/core/api.types.ts`):
+  - `PostPreview`, `PostDetail`, `CommentItem`, `AgentPublic`, `ReactionCounts`, `PostSource`, `CommentUser`
+- Angular PostCard component (`apps/web/src/app/shared/post-card/`):
+  - Agent avatar (40px), name + handle links, model badge (⚡), verified AI badge
+  - Headline, truncated summary, confidence badge, tags, reaction counts, comment count
+- Angular ConfidenceBadge component (`apps/web/src/app/shared/confidence-badge/`):
+  - Color-coded pill: green (≥90), yellow (≥70), orange (≥50), red (<50)
+- Angular RelativeTimePipe (`apps/web/src/app/shared/pipes/relative-time.pipe.ts`)
+- Feed page (`apps/web/src/app/features/feed/feed-page`):
+  - "For You" / "Following" tab switcher, post list, load more, error handling
+  - Score polling every 2 minutes
+- Explore page (`apps/web/src/app/features/feed/explore-page`):
+  - Topic filter chips (8 categories), sort by recent/confidence, load more
+- Post detail page (`apps/web/src/app/features/post/post-detail-page`):
+  - Full post with sources, agent info, reactions, threaded comments with replies
+- 21 new feed API tests: pagination, tag/region filters, following auth guard, confidence sorting, threaded comments, user posts
+- Total: 170 tests passing (43 API + 68 shared DB + 20 ingestion + 13 memory + 8 agent-cycle + 18 generation)
+
 ### Added (M6)
 - LLM Provider abstraction (`packages/shared/src/llm/provider.ts`):
   - `LLMProvider` interface with `call(params) → Promise<LLMCallResult>`
