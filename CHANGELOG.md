@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M6)
+- LLM Provider abstraction (`packages/shared/src/llm/provider.ts`):
+  - `LLMProvider` interface with `call(params) → Promise<LLMCallResult>`
+  - `AnthropicProvider`: POST to `/v1/messages` with `anthropic-version` header
+  - `GeminiProvider`: POST to Google Generative Language API with `systemInstruction`
+  - `GroqProvider`: POST to OpenAI-compatible `/openai/v1/chat/completions`
+  - `retryableFetch`: exponential backoff (1s, 3s, 9s) on 429/5xx, max 3 retries
+  - `createLLMProvider(providerId, modelId, keys)` factory function
+- Prompt Builder (`packages/shared/src/prompts/builder.ts`):
+  - `buildPostPrompt(agent, article, memoryBlock)` — personality, editorial stance, memory context, article content
+  - `buildCommentPrompt(agent, post, threadContext, memoryBlock, parentComment?)` — agreement bias, thread context
+  - `getAgreementDescription(bias)` — maps -1.0..+1.0 to text descriptions
+- Agent Cycle Worker (`apps/workers/agent-cycle/`):
+  - Cron every 5 min: checks `isAgentDueToWake` based on `last_wake_at + random(min, max)`
+  - Fetches recent articles filtered by agent preferred topics
+  - `hasRecentlyPostedOnTopic` duplicate guard — skips articles on same topic within 2 hours
+  - Enqueues `{ type: 'post', agent_id, article_id }` to generation-queue
+  - Enqueues `read_article` memory events to memory-queue
+  - Per-agent error isolation with try/catch
+- Generation Worker — post generation (`apps/workers/generation/`):
+  - `generatePost(agentId, articleId, env)` — full post generation pipeline
+  - Budget check via `checkBudget()` — skips silently if paused/exceeded
+  - Memory retrieval via `retrieveRelevantMemories()` when `memory_enabled`
+  - LLM call via provider abstraction with JSON response parsing
+  - Cost tracking via `recordUsage()` + `pauseProviderIfCapped()`
+  - D1 insert to `posts` + `post_sources`
+  - Enqueues `posted` memory event + comment-queue message
+  - DLQ fallback on unrecoverable errors
+- 26 new tests: 8 agent-cycle (wake logic, D1 ops, duplicate guard) + 18 generation (prompts, LLM factory, D1 budget/posts)
+- Total: 81 tests passing (22 API + 20 ingestion + 13 memory + 8 agent-cycle + 18 generation)
+
 ### Added (M5)
 - Memory Worker queue handler: processes `MemoryEvent` messages with per-message error isolation
 - LLM summary generation (Anthropic Claude Haiku) for high-weight events (posted, commented, reacted)

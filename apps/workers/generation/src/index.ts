@@ -1,5 +1,18 @@
 import { getAgentProfile } from '@arguon/shared/db/agents.js';
 import { getUserById, updateUser } from '@arguon/shared/db/users.js';
+import {
+  checkBudget,
+  recordUsage,
+  pauseProviderIfCapped,
+  insertPost,
+  getRecentArticles,
+  insertDlqEntry,
+  createLLMProvider,
+  buildPostPrompt,
+  retrieveRelevantMemories,
+  formatMemoryBlock,
+} from '@arguon/shared';
+import type { Post, RawArticle, RetrievalEnv } from '@arguon/shared';
 
 export interface Env {
   DB: D1Database;
@@ -106,6 +119,109 @@ async function setFallbackAvatar(agentId: string, env: Env, error: string): Prom
     .run();
 }
 
+async function generatePost(agentId: string, articleId: string, env: Env): Promise<void> {
+  const user = await getUserById(agentId, env.DB);
+  if (!user) throw new Error(`Agent user ${agentId} not found`);
+
+  const profile = await getAgentProfile(agentId, env.DB);
+  if (!profile) throw new Error(`Agent profile ${agentId} not found`);
+
+  const today = new Date().toISOString().split('T')[0];
+  const { allowed } = await checkBudget(profile.provider_id, today, env.DB);
+  if (!allowed) {
+    console.log(`Budget exceeded for provider ${profile.provider_id}, skipping post`);
+    return;
+  }
+
+  const articles = await env.DB
+    .prepare('SELECT * FROM raw_articles WHERE id = ?')
+    .bind(articleId)
+    .first<RawArticle>();
+  if (!articles) throw new Error(`Article ${articleId} not found`);
+
+  let memoryBlock = '';
+  if (profile.behavior.memory_enabled) {
+    const contextText = `${articles.title} ${(articles.content ?? '').slice(0, 300)}`;
+    const retrievalEnv: RetrievalEnv = {
+      DB: env.DB,
+      MEMORY_INDEX: env.MEMORY_INDEX,
+      AI: env.AI,
+    };
+    const memories = await retrieveRelevantMemories(
+      agentId,
+      contextText,
+      profile.behavior.memory_decay_lambda,
+      profile.behavior.memory_context_limit,
+      retrievalEnv,
+    );
+    memoryBlock = formatMemoryBlock(memories);
+  }
+
+  const { system, user: userPrompt } = buildPostPrompt(
+    { name: user.name, handle: user.handle, bio: user.bio ?? '', profile },
+    articles,
+    memoryBlock,
+  );
+
+  const llm = createLLMProvider(profile.provider_id, profile.model_id, {
+    ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: env.GEMINI_API_KEY,
+    GROQ_API_KEY: env.GROQ_API_KEY,
+  });
+
+  const result = await llm.call({ system, user: userPrompt, maxTokens: 512 });
+
+  const parsed = JSON.parse(result.text) as { headline: string; summary: string };
+
+  const sourceReliability = 0.8;
+  const confidenceScore = Math.min(Math.max(sourceReliability * 100, 0), 100);
+
+  const topics: string[] = articles.topics_json
+    ? (JSON.parse(articles.topics_json) as string[])
+    : [];
+
+  const postId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  const post: Post = {
+    id: postId,
+    agent_id: agentId,
+    article_id: articleId,
+    headline: parsed.headline,
+    summary: parsed.summary,
+    confidence_score: confidenceScore,
+    tags_json: topics.length > 0 ? JSON.stringify(topics) : null,
+    region: articles.region,
+    media_json: null,
+    created_at: now,
+    updated_at: now,
+  };
+
+  await insertPost(post, env.DB);
+
+  await env.DB
+    .prepare('INSERT INTO post_sources (post_id, url, title) VALUES (?, ?, ?)')
+    .bind(postId, articles.url, articles.title)
+    .run();
+
+  const inputCost = result.inputTokens * 0.000003;
+  const outputCost = result.outputTokens * 0.000015;
+  await recordUsage(profile.provider_id, today, result.inputTokens + result.outputTokens, inputCost + outputCost, env.DB);
+  await pauseProviderIfCapped(profile.provider_id, today, env.DB);
+
+  await env.MEMORY_QUEUE.send({
+    agent_id: agentId,
+    event_type: 'posted',
+    ref_type: 'post',
+    ref_id: postId,
+    content: `${parsed.headline}: ${parsed.summary}`,
+    topics,
+    initial_weight: 1.0,
+  });
+
+  await env.COMMENT_QUEUE.send({ post_id: postId });
+}
+
 export default {
   async queue(
     batch: MessageBatch<GenerationMessage>,
@@ -127,8 +243,32 @@ export default {
         continue;
       }
 
-      // TODO: M6 — handle post generation (type: "post" or default)
-      msg.ack();
+      // Post generation
+      if (!msg.body.article_id) {
+        msg.ack();
+        continue;
+      }
+
+      try {
+        await generatePost(msg.body.agent_id, msg.body.article_id, env);
+        msg.ack();
+      } catch (err) {
+        console.error(`[generation] Post failed for ${msg.body.agent_id}:`, err);
+        try {
+          await insertDlqEntry(
+            {
+              id: crypto.randomUUID(),
+              queue_name: 'generation-queue',
+              payload_json: JSON.stringify(msg.body),
+              error: err instanceof Error ? err.message : String(err),
+              failed_at: new Date().toISOString(),
+              retry_count: 0,
+            },
+            env.DB,
+          );
+        } catch { /* DLQ best-effort */ }
+        msg.ack();
+      }
     }
   },
 } satisfies ExportedHandler<Env, GenerationMessage>;

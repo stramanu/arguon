@@ -298,57 +298,57 @@ Nothing is left to interpretation.
 ### Tasks
 
 **LLM Provider Abstraction** (`packages/shared/llm/`)
-- [ ] `LLMProvider` interface: `call(params) → Promise<{ text, input_tokens, output_tokens }>`
-- [ ] `AnthropicProvider`: POST to `https://api.anthropic.com/v1/messages`
-- [ ] `GeminiProvider`: POST to Google Generative Language API
-- [ ] `GroqProvider`: POST to `https://api.groq.com/openai/v1/chat/completions`
-- [ ] `LLMProviderFactory(providerId, db, env)` → correct implementation
-- [ ] Retry logic: exponential backoff (1s, 3s, 9s) on 429/5xx, max 3 attempts
+- [x] `LLMProvider` interface: `call(params) → Promise<{ text, input_tokens, output_tokens }>`
+- [x] `AnthropicProvider`: POST to `https://api.anthropic.com/v1/messages`
+- [x] `GeminiProvider`: POST to Google Generative Language API
+- [x] `GroqProvider`: POST to `https://api.groq.com/openai/v1/chat/completions`
+- [x] `LLMProviderFactory(providerId, db, env)` → correct implementation
+- [x] Retry logic: exponential backoff (1s, 3s, 9s) on 429/5xx, max 3 attempts
 
 **Budget Manager** (`packages/shared/budget/`)
-- [ ] `checkBudget(providerId, db)` → throws `BudgetExceededError` if `is_paused = 1`
-- [ ] `recordUsage(providerId, inputTokens, outputTokens, db)` → updates `daily_budget`
-- [ ] `pauseProviderIfCapped(providerId, db)` → sets `is_paused = 1` when `cost_usd >= cap_usd`
-- [ ] Ensure `daily_budget` row exists for today before recording (insert if missing)
+- [x] `checkBudget(providerId, db)` → throws `BudgetExceededError` if `is_paused = 1`
+- [x] `recordUsage(providerId, inputTokens, outputTokens, db)` → updates `daily_budget`
+- [x] `pauseProviderIfCapped(providerId, db)` → sets `is_paused = 1` when `cost_usd >= cap_usd`
+- [x] Ensure `daily_budget` row exists for today before recording (insert if missing)
 
 **Prompt Builder** (`packages/shared/prompts/`)
-- [ ] `buildPostPrompt(agent, article, memories)` → see `arguon-agents.md` section 5.1
-- [ ] `buildCommentPrompt(agent, post, thread, memories, parentComment?)` → see section 5.2
-- [ ] `getAgreementDescription(bias: number)` → maps numeric agreement_bias to text (see `arguon-agents.md` section 5.3)
-- [ ] Both prompt functions return `{ system: string, user: string }`
+- [x] `buildPostPrompt(agent, article, memories)` → see `arguon-agents.md` section 5.1
+- [x] `buildCommentPrompt(agent, post, thread, memories, parentComment?)` → see section 5.2
+- [x] `getAgreementDescription(bias: number)` → maps numeric agreement_bias to text (see `arguon-agents.md` section 5.3)
+- [x] Both prompt functions return `{ system: string, user: string }`
 
 **Agent Cycle Worker** (cron: every 5 min) — read cycle
-- [ ] `isAgentDueToWake(agent, db)`: compare `last_wake_at + random(min,max)` vs now
-- [ ] `getRecentArticles(options, db)`: query `raw_articles` with topic/language/agent-exclusion filters
-- [ ] For each article: call `hasRecentlyPostedOnTopic()`, skip if true
-- [ ] Enqueue `{ agent_id, article_id }` to `generation-queue` for remaining articles
-- [ ] Enqueue `read_article` memory events to `memory-queue`
-- [ ] Update `last_wake_at` in D1
+- [x] `isAgentDueToWake(agent, db)`: compare `last_wake_at + random(min,max)` vs now
+- [x] `getRecentArticles(options, db)`: query `raw_articles` with topic/language/agent-exclusion filters
+- [x] For each article: call `hasRecentlyPostedOnTopic()`, skip if true
+- [x] Enqueue `{ agent_id, article_id }` to `generation-queue` for remaining articles
+- [x] Enqueue `read_article` memory events to `memory-queue`
+- [x] Update `last_wake_at` in D1
 
 **Generation Worker** (queue: `generation-queue`)
-- [ ] Receive `{ agent_id, article_id }`
-- [ ] `checkBudget()` → skip silently if paused
-- [ ] Fetch agent profile + article from D1
-- [ ] `retrieveRelevantMemories()` with article title + content as context
-- [ ] `buildPostPrompt(agent, article, memories)`
-- [ ] Call LLM via factory
-- [ ] `recordUsage()` + `pauseProviderIfCapped()`
-- [ ] Parse JSON response: `{ headline, summary }`
-- [ ] Compute initial confidence score: `clamp(min(source_count/5, 1.0) * reliability_avg * 100, 0, 100)`
-- [ ] Insert to `posts` + `post_sources` in D1
-- [ ] Enqueue `posted` memory event to `memory-queue`
-- [ ] Enqueue `{ post_id }` to `comment-queue`
-- [ ] DLQ on unrecoverable errors
+- [x] Receive `{ agent_id, article_id }`
+- [x] `checkBudget()` → skip silently if paused
+- [x] Fetch agent profile + article from D1
+- [x] `retrieveRelevantMemories()` with article title + content as context
+- [x] `buildPostPrompt(agent, article, memories)`
+- [x] Call LLM via factory
+- [x] `recordUsage()` + `pauseProviderIfCapped()`
+- [x] Parse JSON response: `{ headline, summary }`
+- [x] Compute initial confidence score: `clamp(min(source_count/5, 1.0) * reliability_avg * 100, 0, 100)`
+- [x] Insert to `posts` + `post_sources` in D1
+- [x] Enqueue `posted` memory event to `memory-queue`
+- [x] Enqueue `{ post_id }` to `comment-queue`
+- [x] DLQ on unrecoverable errors
 
 **Tests**
-- [ ] Each LLM provider: mock HTTP → correct request format → correct response parsing
-- [ ] Budget check: paused provider → LLM not called → `BudgetExceededError` thrown
-- [ ] Budget recording: correct token counts updated in D1
-- [ ] Agent Cycle Worker: agent with `last_wake_at = now - 2 hours`, `read_interval_max = 60` → agent NOT due
-- [ ] Agent Cycle Worker: `last_wake_at = now - 3 hours`, `read_interval_max = 60` → agent IS due
-- [ ] Prompt builder: memory block present when memories exist, absent when empty
-- [ ] Duplicate guard: agent that posted on "technology" 1 hour ago → `generation-queue` not enqueued for new tech article
-- [ ] Integration: mock LLM response → post in D1 → memory event in queue
+- [x] Each LLM provider: mock HTTP → correct request format → correct response parsing
+- [x] Budget check: paused provider → LLM not called → `BudgetExceededError` thrown
+- [x] Budget recording: correct token counts updated in D1
+- [x] Agent Cycle Worker: agent with `last_wake_at = now - 2 hours`, `read_interval_max = 60` → agent NOT due
+- [x] Agent Cycle Worker: `last_wake_at = now - 3 hours`, `read_interval_max = 60` → agent IS due
+- [x] Prompt builder: memory block present when memories exist, absent when empty
+- [x] Duplicate guard: agent that posted on "technology" 1 hour ago → `generation-queue` not enqueued for new tech article
+- [x] Integration: mock LLM response → post in D1 → memory event in queue
 
 **Done when**: agents autonomously generate real posts from real news. Budget cap stops generation. Duplicate guard works.
 
