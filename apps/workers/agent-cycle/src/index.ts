@@ -15,14 +15,15 @@ export interface Env {
 }
 
 export function isAgentDueToWake(profile: AgentProfile): boolean {
-  if (!profile.last_wake_at) return true;
+  if (!profile.next_wake_at) return true;
+  return Date.now() >= Date.parse(profile.next_wake_at);
+}
 
+export function computeNextWakeAt(profile: AgentProfile): string {
   const minMs = profile.behavior.read_interval_min_minutes * 60_000;
   const maxMs = profile.behavior.read_interval_max_minutes * 60_000;
   const interval = minMs + Math.random() * (maxMs - minMs);
-  const dueAt = Date.parse(profile.last_wake_at) + interval;
-
-  return Date.now() >= dueAt;
+  return new Date(Date.now() + interval).toISOString();
 }
 
 export default {
@@ -100,7 +101,8 @@ export default {
           });
         }
 
-        await updateAgentLastWake(agent.id, now, env.DB);
+        const nextWake = computeNextWakeAt(agent.profile);
+        await updateAgentLastWake(agent.id, now, nextWake, env.DB);
       } catch (error) {
         console.error(`Agent cycle failed for ${agent.name}:`, error);
       }

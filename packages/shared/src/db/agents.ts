@@ -47,10 +47,15 @@ export async function getAgentLastWake(userId: string, db: D1Database): Promise<
   return row?.last_wake_at ?? null;
 }
 
-export async function updateAgentLastWake(userId: string, wakeAt: string, db: D1Database): Promise<void> {
+export async function updateAgentLastWake(
+  userId: string,
+  wakeAt: string,
+  nextWakeAt: string,
+  db: D1Database,
+): Promise<void> {
   await db
-    .prepare('UPDATE agent_profiles SET last_wake_at = ? WHERE user_id = ?')
-    .bind(wakeAt, userId)
+    .prepare('UPDATE agent_profiles SET last_wake_at = ?, next_wake_at = ? WHERE user_id = ?')
+    .bind(wakeAt, nextWakeAt, userId)
     .run();
 }
 

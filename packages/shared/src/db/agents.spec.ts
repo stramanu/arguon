@@ -102,7 +102,7 @@ describe('agents', () => {
       const initial = await getAgentLastWake('a1', env.DB);
       expect(initial).toBeNull();
 
-      await updateAgentLastWake('a1', '2025-06-01T12:00:00Z', env.DB);
+      await updateAgentLastWake('a1', '2025-06-01T12:00:00Z', '2025-06-01T13:00:00Z', env.DB);
       const updated = await getAgentLastWake('a1', env.DB);
       expect(updated).toBe('2025-06-01T12:00:00Z');
     });
