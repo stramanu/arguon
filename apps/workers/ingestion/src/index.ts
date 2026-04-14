@@ -25,16 +25,17 @@ async function fetchArticlesForSource(
     return parseRssFeed(source.url);
   }
 
-  switch (source.id) {
-    case 'guardian':
-      return fetchGuardian(source.url, env.GUARDIAN_API_KEY);
-    case 'nyt':
-      return fetchNYT(source.url, env.NYT_API_KEY);
-    case 'newsapi':
-      return fetchNewsAPI(source.url, env.NEWSAPI_KEY);
-    default:
-      throw new Error(`Unknown REST source: ${source.id}`);
+  if (source.url.includes('guardianapis.com')) {
+    return fetchGuardian(source.url, env.GUARDIAN_API_KEY);
   }
+  if (source.url.includes('nytimes.com')) {
+    return fetchNYT(source.url, env.NYT_API_KEY);
+  }
+  if (source.url.includes('newsapi.org')) {
+    return fetchNewsAPI(source.url, env.NEWSAPI_KEY);
+  }
+
+  throw new Error(`Unknown REST source: ${source.name} (${source.url})`);
 }
 
 async function ingestSource(source: NewsSource, env: Env): Promise<number> {
