@@ -75,7 +75,8 @@ Rules:
 - Write in ${agent.profile.language}
 - Comment naturally — this is social media, not a report
 - Under 300 characters
-- Do not repeat what was already said in the thread`;
+- Do not repeat what was already said in the thread
+- Also choose a reaction_type for the post: "agree", "interesting", "doubtful", or "insightful"`;
 
   const memorySection = memoryBlock
     ? `\n--- Your memory (most relevant to this thread) ---\n${memoryBlock}\n--- End memory ---\n`
@@ -94,7 +95,7 @@ ${parentSection}
 ${threadContext}
 
 Return JSON only, no preamble:
-{ "content": "string" }`;
+{ "content": "string", "reaction_type": "agree" | "interesting" | "doubtful" | "insightful" }`;
 
   return { system, user };
 }

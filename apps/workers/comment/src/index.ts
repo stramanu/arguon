@@ -15,8 +15,9 @@ import {
   formatMemoryBlock,
   getActiveAgents,
   createNotification,
+  upsertReaction,
 } from '@arguon/shared';
-import type { Comment, RetrievalEnv, Notification } from '@arguon/shared';
+import type { Comment, Reaction, ReactionType, RetrievalEnv, Notification } from '@arguon/shared';
 
 export interface Env {
   DB: D1Database;
@@ -73,6 +74,32 @@ export async function shouldAgentComment(
   return true;
 }
 
+const VALID_REACTIONS: ReactionType[] = ['agree', 'interesting', 'doubtful', 'insightful'];
+
+function pickReactionByPersonality(agreementBias: number): ReactionType {
+  const rand = Math.random();
+  if (agreementBias > 0.3) return rand < 0.5 ? 'agree' : 'insightful';
+  if (agreementBias < -0.3) return rand < 0.5 ? 'doubtful' : 'interesting';
+  return VALID_REACTIONS[Math.floor(rand * VALID_REACTIONS.length)];
+}
+
+async function insertAgentReaction(
+  agentId: string,
+  postId: string,
+  reactionType: ReactionType,
+  db: D1Database,
+): Promise<void> {
+  const reaction: Reaction = {
+    id: crypto.randomUUID(),
+    user_id: agentId,
+    target_type: 'post',
+    target_id: postId,
+    reaction_type: reactionType,
+    created_at: new Date().toISOString(),
+  };
+  await upsertReaction(reaction, db);
+}
+
 async function generateComment(agentId: string, postId: string, env: Env): Promise<void> {
   const user = await getUserById(agentId, env.DB);
   if (!user) throw new Error(`Agent user ${agentId} not found`);
@@ -89,7 +116,13 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
     profile.behavior.comment_probability,
     env.DB,
   );
-  if (!canComment) return;
+
+  // Always react — even if the agent doesn't comment
+  if (!canComment) {
+    const reactionType = pickReactionByPersonality(profile.personality.agreement_bias);
+    await insertAgentReaction(agentId, postId, reactionType, env.DB);
+    return;
+  }
 
   const today = new Date().toISOString().split('T')[0];
   const { allowed } = await checkBudget(profile.provider_id, today, env.DB);
@@ -131,21 +164,26 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
     memoryBlock,
   );
 
-  const keys: Record<string, string> = {
-    anthropic: env.ANTHROPIC_API_KEY,
-    gemini: env.GEMINI_API_KEY,
-    groq: env.GROQ_API_KEY,
-  };
-  const llm = createLLMProvider(profile.provider_id, profile.model_id, keys);
+  const llm = createLLMProvider(profile.provider_id, profile.model_id, {
+    ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: env.GEMINI_API_KEY,
+    GROQ_API_KEY: env.GROQ_API_KEY,
+  });
   const result = await llm.call({ system, user: userPrompt, maxTokens: 200 });
 
   // Parse response
   const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleaned) as { content: string };
+  const parsed = JSON.parse(cleaned) as { content: string; reaction_type?: string };
 
   if (!parsed.content || typeof parsed.content !== 'string' || parsed.content.length === 0) {
     throw new Error('LLM returned empty content');
   }
+
+  // Insert reaction (from LLM or personality-based fallback)
+  const reactionType: ReactionType = VALID_REACTIONS.includes(parsed.reaction_type as ReactionType)
+    ? (parsed.reaction_type as ReactionType)
+    : pickReactionByPersonality(profile.personality.agreement_bias);
+  await insertAgentReaction(agentId, postId, reactionType, env.DB);
 
   // Truncate to 300 chars
   const content = parsed.content.slice(0, 300);
