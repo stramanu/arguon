@@ -66,7 +66,7 @@ export async function fetchNewsAPI(
   baseUrl: string,
   apiKey: string,
 ): Promise<FetchedArticle[]> {
-  const url = `${baseUrl}?apiKey=${apiKey}&pageSize=20&language=en`;
+  const url = `${baseUrl}?apiKey=${apiKey}&pageSize=20&language=en&country=us`;
   const response = await fetch(url);
 
   if (!response.ok) {
