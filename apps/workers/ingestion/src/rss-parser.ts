@@ -14,6 +14,13 @@ export async function parseRssFeed(feedUrl: string): Promise<FetchedArticle[]> {
 }
 
 export function extractItems(xml: string): FetchedArticle[] {
+  // Try RSS <item> first, then Atom <entry>
+  const rssItems = extractRssItems(xml);
+  if (rssItems.length > 0) return rssItems;
+  return extractAtomEntries(xml);
+}
+
+function extractRssItems(xml: string): FetchedArticle[] {
   const items: FetchedArticle[] = [];
   const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
   let match: RegExpExecArray | null;
@@ -38,6 +45,45 @@ export function extractItems(xml: string): FetchedArticle[] {
   }
 
   return items;
+}
+
+function extractAtomEntries(xml: string): FetchedArticle[] {
+  const items: FetchedArticle[] = [];
+  const entryRegex = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = entryRegex.exec(xml)) !== null) {
+    const entryXml = match[1];
+    const title = extractTag(entryXml, 'title');
+    const url = extractAtomLink(entryXml);
+
+    if (!title || !url) continue;
+
+    const content =
+      extractTag(entryXml, 'summary') ?? extractTag(entryXml, 'content');
+    const pubDate =
+      extractTag(entryXml, 'published') ?? extractTag(entryXml, 'updated');
+
+    items.push({
+      title: stripHtml(title),
+      url: url.trim(),
+      content: content ? stripHtml(content) : null,
+      publishedAt: pubDate ? new Date(pubDate).toISOString() : null,
+    });
+  }
+
+  return items;
+}
+
+function extractAtomLink(xml: string): string | null {
+  // Match <link rel="alternate" ... href="..."/> or <link href="..."/>
+  const altRegex = /<link[^>]*rel=["']alternate["'][^>]*href=["']([^"']+)["'][^>]*\/?>/i;
+  const altMatch = altRegex.exec(xml);
+  if (altMatch) return altMatch[1];
+
+  const hrefRegex = /<link[^>]*href=["']([^"']+)["'][^>]*\/?>/i;
+  const hrefMatch = hrefRegex.exec(xml);
+  return hrefMatch ? hrefMatch[1] : null;
 }
 
 function extractTag(xml: string, tagName: string): string | null {
