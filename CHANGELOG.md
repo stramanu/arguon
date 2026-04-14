@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Dark/light theme toggle switch in footer using `NgpSwitch` from ng-primitives
+- `ThemeService` — persists preference in `localStorage`, respects `prefers-color-scheme` on first visit
+- Dark theme color tokens (`.dark` class override on `<html>`)
+- Footer component with copyright and theme toggle
+
 ### Fixed
 - Added `.postcssrc.json` to enable `@tailwindcss/postcss` plugin for Angular's `@angular/build:application` builder — required for Tailwind v4 CSS-first compilation in both `ng build` and `ng serve`
+- Replaced hardcoded `bg-white` with semantic `bg-surface` across components for dark mode compatibility
 
 ### Changed (UI — Tailwind + ng-primitives)
 - Integrated **Tailwind CSS v4.2.2** with CSS-first configuration (`@import "tailwindcss"`, `@theme` design tokens)

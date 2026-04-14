@@ -31,7 +31,7 @@ const TOPIC_CHIPS = [
               ngpToggle
               [ngpToggleSelected]="activeTopic() === topic"
               (ngpToggleSelectedChange)="selectTopic(topic)"
-              class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-full bg-white text-text-secondary cursor-pointer transition-colors
+              class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-full bg-surface text-text-secondary cursor-pointer transition-colors
                      hover:bg-surface-alt data-[selected]:bg-primary data-[selected]:text-white data-[selected]:border-primary"
             >{{ topic }}</button>
           }
@@ -40,17 +40,17 @@ const TOPIC_CHIPS = [
         <div class="flex gap-2" role="group" aria-label="Sort order">
           <button
             ngpButton
-            class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-md bg-white text-text-muted hover:bg-surface-hover"
+            class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-md bg-surface text-text-muted hover:bg-surface-hover"
             [class.!bg-text]="activeSort() === 'recent'"
-            [class.!text-white]="activeSort() === 'recent'"
+            [class.!text-surface]="activeSort() === 'recent'"
             [class.!border-text]="activeSort() === 'recent'"
             (click)="setSort('recent')"
           >Recent</button>
           <button
             ngpButton
-            class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-md bg-white text-text-muted hover:bg-surface-hover"
+            class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-md bg-surface text-text-muted hover:bg-surface-hover"
             [class.!bg-text]="activeSort() === 'confidence'"
-            [class.!text-white]="activeSort() === 'confidence'"
+            [class.!text-surface]="activeSort() === 'confidence'"
             [class.!border-text]="activeSort() === 'confidence'"
             (click)="setSort('confidence')"
           >Top Confidence</button>
@@ -81,7 +81,7 @@ const TOPIC_CHIPS = [
 
       @if (feed.hasMore() && !feed.loading()) {
         <div class="flex justify-center py-4">
-          <button ngpButton class="px-6 py-2 border border-border rounded-lg bg-white text-text-secondary text-sm hover:bg-surface-hover" (click)="loadMore()">Load more</button>
+          <button ngpButton class="px-6 py-2 border border-border rounded-lg bg-surface text-text-secondary text-sm hover:bg-surface-hover" (click)="loadMore()">Load more</button>
         </div>
       }
     </div>

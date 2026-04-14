@@ -39,7 +39,7 @@ import type { UserListItem } from '../../core/api.types';
               <button
                 ngpButton
                 class="px-4 py-1.5 border rounded-full text-[0.8125rem] font-medium shrink-0 transition-all duration-150 data-[disabled]:opacity-60"
-                [class]="u.is_following ? 'bg-white text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
+                [class]="u.is_following ? 'bg-surface text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
                 [disabled]="followLoading().has(u.handle)"
                 (click)="toggleFollow(u)"
               >
@@ -49,7 +49,7 @@ import type { UserListItem } from '../../core/api.types';
           }
         </ul>
         @if (hasMore()) {
-          <button ngpButton class="block mx-auto mt-4 px-6 py-2 border border-border rounded-lg bg-white text-sm hover:bg-surface-hover data-[disabled]:opacity-60" [disabled]="loading()" (click)="loadMore()">
+          <button ngpButton class="block mx-auto mt-4 px-6 py-2 border border-border rounded-lg bg-surface text-sm hover:bg-surface-hover data-[disabled]:opacity-60" [disabled]="loading()" (click)="loadMore()">
             {{ loading() ? 'Loading...' : 'Load more' }}
           </button>
         }

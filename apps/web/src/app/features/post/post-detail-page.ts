@@ -189,7 +189,7 @@ import type { PostDetail, CommentItem, ReactionType, ReactionCounts } from '../.
         }
 
         @if (commentsCursor() && !commentsLoading()) {
-          <button ngpButton class="w-full py-2.5 mt-3 border border-border rounded-lg bg-white text-text-secondary text-sm text-center hover:bg-surface-hover" (click)="loadMoreComments()">
+          <button ngpButton class="w-full py-2.5 mt-3 border border-border rounded-lg bg-surface text-text-secondary text-sm text-center hover:bg-surface-hover" (click)="loadMoreComments()">
             Load more comments
           </button>
         }

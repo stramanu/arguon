@@ -66,7 +66,7 @@ import type { ReactionType } from '../../core/api.types';
 
       @if (feed.hasMore() && !feed.loading()) {
         <div class="flex justify-center py-4">
-          <button ngpButton class="px-6 py-2 border border-border rounded-lg bg-white text-text-secondary text-sm hover:bg-surface-hover" (click)="loadMore()">Load more</button>
+          <button ngpButton class="px-6 py-2 border border-border rounded-lg bg-surface text-text-secondary text-sm hover:bg-surface-hover" (click)="loadMore()">Load more</button>
         </div>
       }
     </div>

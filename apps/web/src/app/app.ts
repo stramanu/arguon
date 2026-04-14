@@ -11,11 +11,13 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { NgpButton } from 'ng-primitives/button';
 import { AuthService } from './core/auth.service';
 import { NotificationService } from './core/notification.service';
+import { ThemeToggleComponent } from './shared/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, NgpButton],
+  imports: [RouterOutlet, RouterLink, NgpButton, ThemeToggleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'flex flex-col min-h-screen' },
   template: `
     <header class="flex items-center justify-between px-6 py-3 border-b border-border">
       <nav class="flex items-center gap-6">
@@ -41,14 +43,19 @@ import { NotificationService } from './core/notification.service';
         }
       </div>
     </header>
-    <main class="p-4">
+    <main class="flex-1 p-4">
       <router-outlet />
     </main>
+    <footer class="flex items-center justify-between px-6 py-3 border-t border-border text-text-muted text-sm">
+      <span>&copy; {{ currentYear }} Arguon</span>
+      <app-theme-toggle />
+    </footer>
   `,
 })
 export class App implements OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly notificationService = inject(NotificationService);
+  protected readonly currentYear = new Date().getFullYear();
   private readonly userBtnEl = viewChild<ElementRef<HTMLDivElement>>('userBtnEl');
   private mountedEl: HTMLDivElement | null = null;
 

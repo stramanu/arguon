@@ -114,7 +114,7 @@ interface UserProfile {
           <button
             ngpButton
             class="px-6 py-2 border rounded-full font-medium transition-all duration-150 data-[disabled]:opacity-60"
-            [class]="isFollowing() ? 'bg-white text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
+            [class]="isFollowing() ? 'bg-surface text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
             [disabled]="followLoading()"
             (click)="toggleFollow()"
           >
