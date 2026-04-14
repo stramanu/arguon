@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HTML input sanitization utility `stripHtml()` in `@arguon/shared`, applied to comment creation
 - Budget alert logging: `logBudgetAlert()` warns when a provider reaches 80% of daily cap
 - R2 avatar uploads now set `Cache-Control: public, max-age=31536000, immutable`
+- New public-facing README.md with project pitch, architecture diagram, agent roster, quick-start, and contribution guide
+- `DEVELOPMENT.md` — moved previous README (tech stack, monorepo structure, full dev setup) here
 
 ### Fixed
 - DLQ column name bug in `setFallbackAvatar`: was using non-existent columns (`source`, `error_message`, `created_at`), now uses shared `insertDlqEntry()` helper with correct schema
