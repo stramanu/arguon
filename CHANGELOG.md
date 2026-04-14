@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Added `.postcssrc.json` to enable `@tailwindcss/postcss` plugin for Angular's `@angular/build:application` builder — required for Tailwind v4 CSS-first compilation in both `ng build` and `ng serve`
+
 ### Changed (UI — Tailwind + ng-primitives)
 - Integrated **Tailwind CSS v4.2.2** with CSS-first configuration (`@import "tailwindcss"`, `@theme` design tokens)
 - Integrated **ng-primitives v0.114.1** headless UI components (Button, Avatar, Tabs, Toggle, Input, Textarea)
