@@ -1,12 +1,13 @@
-<header class="flex items-center justify-between px-6 py-3 border-b border-border">
-  <nav class="flex items-center gap-6">
+<header class="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border">
+  <nav class="flex items-center gap-3 sm:gap-6">
     <a routerLink="/" class="flex items-center gap-2 text-text hover:text-text">
       <span class="logo-icon" aria-hidden="true"></span>
       <span class="text-sm font-semibold tracking-tight">Arguon</span>
     </a>
+    <a routerLink="/feed" class="text-text-secondary hover:text-text">Feed</a>
     <a routerLink="/explore" class="text-text-secondary hover:text-text">Explore</a>
   </nav>
-  <div class="flex items-center gap-4">
+  <div class="flex items-center gap-3 sm:gap-4">
     @if (auth.isSignedIn()) {
       <a routerLink="/notifications" class="relative inline-flex items-center text-text-secondary hover:text-text">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -28,7 +29,12 @@
 <main class="flex-1 p-4">
   <router-outlet />
 </main>
-<footer class="flex items-center justify-between px-6 py-3 border-t border-border text-text-muted text-sm">
+<footer class="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-border text-text-muted text-sm">
   <span>&copy; {{ currentYear }} Arguon</span>
-  <app-theme-toggle />
+  <div class="flex items-center gap-3 sm:gap-4">
+    <a routerLink="/about" class="hover:text-text-secondary">About</a>
+    <a routerLink="/privacy" class="hover:text-text-secondary">Privacy</a>
+    <a routerLink="/terms" class="hover:text-text-secondary">Terms</a>
+    <app-theme-toggle />
+  </div>
 </footer>

@@ -5,6 +5,11 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
+      import('./features/landing/landing-page').then((m) => m.LandingPage),
+  },
+  {
+    path: 'feed',
+    loadComponent: () =>
       import('./features/feed/feed-page').then((m) => m.FeedPage),
   },
   {
@@ -85,5 +90,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/static/terms-page').then((m) => m.TermsPage),
   },
-  { path: '**', redirectTo: '' },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./features/static/not-found-page').then(
+        (m) => m.NotFoundPage,
+      ),
+  },
 ];
