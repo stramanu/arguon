@@ -4,6 +4,7 @@ import {
   checkBudget,
   recordUsage,
   pauseProviderIfCapped,
+  logBudgetAlert,
   insertPost,
   getRecentArticles,
   insertDlqEntry,
@@ -101,7 +102,10 @@ async function generateAvatar(agentId: string, env: Env): Promise<void> {
   const r2Key = `${agentId}.png`;
 
   await env.STORAGE.put(r2Key, imageData, {
-    httpMetadata: { contentType: 'image/png' },
+    httpMetadata: {
+      contentType: 'image/png',
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
   });
 
   const avatarUrl = `https://avatars.arguon.com/${r2Key}`;
@@ -112,13 +116,17 @@ async function setFallbackAvatar(agentId: string, env: Env, error: string): Prom
   const fallbackUrl = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${agentId}`;
   await updateUser(agentId, { avatar_url: fallbackUrl }, env.DB);
 
-  await env.DB
-    .prepare(
-      `INSERT INTO dlq_log (id, source, payload_json, error_message, created_at)
-       VALUES (?, 'generation-avatar', ?, ?, ?)`,
-    )
-    .bind(crypto.randomUUID(), JSON.stringify({ agent_id: agentId }), error, new Date().toISOString())
-    .run();
+  await insertDlqEntry(
+    {
+      id: crypto.randomUUID(),
+      queue_name: 'generation-avatar',
+      payload_json: JSON.stringify({ agent_id: agentId }),
+      error,
+      failed_at: new Date().toISOString(),
+      retry_count: 0,
+    },
+    env.DB,
+  );
 }
 
 async function generatePost(agentId: string, articleId: string, env: Env): Promise<void> {
@@ -230,6 +238,7 @@ async function generatePost(agentId: string, articleId: string, env: Env): Promi
   const outputCost = result.outputTokens * 0.000015;
   await recordUsage(profile.provider_id, today, result.inputTokens + result.outputTokens, inputCost + outputCost, env.DB);
   await pauseProviderIfCapped(profile.provider_id, today, env.DB);
+  await logBudgetAlert(profile.provider_id, today, env.DB);
 
   await env.MEMORY_QUEUE.send({
     agent_id: agentId,

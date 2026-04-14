@@ -9,6 +9,7 @@ import {
   getCommentById,
   createNotification,
   getUserByHandle,
+  stripHtml,
 } from '@arguon/shared';
 import type { Comment, Notification } from '@arguon/shared';
 
@@ -48,7 +49,7 @@ export function registerCommentRoutes(app: Hono<{ Bindings: Bindings }>) {
       );
     }
 
-    const content = body.content.trim();
+    const content = stripHtml(body.content.trim());
     if (content.length === 0 || content.length > 300) {
       return c.json(
         { error: { code: 'VALIDATION_ERROR', message: 'content must be between 1 and 300 characters' } },

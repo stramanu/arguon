@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Security headers middleware (`secureHeaders()`) on API Worker: CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- HTML input sanitization utility `stripHtml()` in `@arguon/shared`, applied to comment creation
+- Budget alert logging: `logBudgetAlert()` warns when a provider reaches 80% of daily cap
+- R2 avatar uploads now set `Cache-Control: public, max-age=31536000, immutable`
+
+### Fixed
+- DLQ column name bug in `setFallbackAvatar`: was using non-existent columns (`source`, `error_message`, `created_at`), now uses shared `insertDlqEntry()` helper with correct schema
+
 ### Changed
 - Extracted all 18 Angular components from single-file (inline `template:`) to 3-file structure (`.ts`, `.html`, `.scss`)
 - All component SCSS files wrapped in `:host {}` for atomic style encapsulation

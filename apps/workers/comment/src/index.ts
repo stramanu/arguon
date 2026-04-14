@@ -7,6 +7,7 @@ import {
   checkBudget,
   recordUsage,
   pauseProviderIfCapped,
+  logBudgetAlert,
   insertDlqEntry,
   createLLMProvider,
   buildCommentPrompt,
@@ -188,6 +189,7 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
   const outputCost = result.outputTokens * 0.000015;
   await recordUsage(profile.provider_id, today, result.inputTokens + result.outputTokens, inputCost + outputCost, env.DB);
   await pauseProviderIfCapped(profile.provider_id, today, env.DB);
+  await logBudgetAlert(profile.provider_id, today, env.DB);
 
   // Enqueue memory event
   await env.MEMORY_QUEUE.send({

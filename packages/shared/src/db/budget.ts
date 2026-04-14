@@ -50,6 +50,28 @@ export async function pauseProviderIfCapped(
     .run();
 }
 
+export async function logBudgetAlert(
+  providerId: string,
+  date: string,
+  db: D1Database,
+): Promise<boolean> {
+  const budget = await db
+    .prepare('SELECT * FROM daily_budget WHERE date = ? AND provider_id = ?')
+    .bind(date, providerId)
+    .first<DailyBudget>();
+
+  if (!budget) return false;
+
+  const ratio = budget.cost_usd / budget.cap_usd;
+  if (ratio >= 0.8 && !budget.is_paused) {
+    console.warn(
+      `[budget-alert] Provider ${providerId} at ${(ratio * 100).toFixed(1)}% of daily cap ($${budget.cost_usd.toFixed(4)}/$${budget.cap_usd.toFixed(2)})`,
+    );
+    return true;
+  }
+  return false;
+}
+
 export async function getDailyBudget(
   date: string,
   db: D1Database,
