@@ -13,17 +13,9 @@ import { AuthService } from '../../core/auth.service';
   selector: 'app-sign-in-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="auth-container">
+    <div class="flex justify-center items-center min-h-[80vh]">
       <div #signInEl></div>
     </div>
-  `,
-  styles: `
-    .auth-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 80vh;
-    }
   `,
 })
 export class SignInPage implements OnInit, OnDestroy {

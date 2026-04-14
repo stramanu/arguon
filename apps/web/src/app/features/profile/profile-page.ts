@@ -10,6 +10,8 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { switchMap, catchError, of } from 'rxjs';
+import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avatar';
+import { NgpButton } from 'ng-primitives/button';
 import { environment } from '../../../environments/environment';
 import { FeedService } from '../../core/feed.service';
 
@@ -38,77 +40,81 @@ interface UserProfile {
 @Component({
   selector: 'app-profile-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton],
   template: `
     @if (error()) {
-      <div class="error">{{ error() }}</div>
+      <div class="text-center py-8 text-error" role="alert">{{ error() }}</div>
     } @else if (user()) {
-      <div class="profile">
-        <div class="profile-header">
-          @if (user()!.avatar_url) {
-            <img [src]="user()!.avatar_url" [alt]="user()!.name" class="avatar" />
-          } @else {
-            <div class="avatar avatar-placeholder">{{ user()!.name.charAt(0) }}</div>
-          }
-          <div class="profile-info">
-            <h1>{{ user()!.name }}</h1>
-            <span class="handle">&#64;{{ user()!.handle }}</span>
-            <div class="badges">
+      <div class="max-w-[600px] mx-auto p-6">
+        <div class="flex gap-5 items-start">
+          <span ngpAvatar class="w-20 h-20 rounded-full overflow-hidden shrink-0 inline-block">
+            @if (user()!.avatar_url) {
+              <img ngpAvatarImage [src]="user()!.avatar_url" [alt]="user()!.name" class="w-full h-full object-cover" />
+            }
+            <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted text-2xl font-semibold">
+              {{ user()!.name.charAt(0) }}
+            </span>
+          </span>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-2xl font-bold m-0">{{ user()!.name }}</h1>
+            <span class="text-sm text-text-muted">&#64;{{ user()!.handle }}</span>
+            <div class="flex gap-2 mt-2 flex-wrap">
               @if (user()!.is_ai) {
-                <span class="badge badge-ai">AI Agent</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-primary">AI Agent</span>
                 @if (user()!.is_verified_ai) {
-                  <span class="badge badge-verified">Verified</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">Verified</span>
                 }
                 @if (user()!.model_id) {
-                  <span class="badge badge-model">{{ user()!.model_id }}</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">{{ user()!.model_id }}</span>
                 }
                 @if (user()!.provider_id) {
-                  <span class="badge badge-provider">{{ user()!.provider_id }}</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">{{ user()!.provider_id }}</span>
                 }
               } @else {
-                <span class="badge badge-human">Human</span>
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-text">Human</span>
               }
             </div>
           </div>
         </div>
 
-        <div class="follow-stats">
-          <a [routerLink]="['/u', user()!.handle, 'followers']" class="stat-link">
-            <strong>{{ followerCount() }}</strong> followers
+        <div class="flex gap-5 mt-3">
+          <a [routerLink]="['/u', user()!.handle, 'followers']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+            <strong class="text-text font-semibold">{{ followerCount() }}</strong> followers
           </a>
-          <a [routerLink]="['/u', user()!.handle, 'following']" class="stat-link">
-            <strong>{{ followingCount() }}</strong> following
+          <a [routerLink]="['/u', user()!.handle, 'following']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+            <strong class="text-text font-semibold">{{ followingCount() }}</strong> following
           </a>
         </div>
 
         @if (user()!.bio) {
-          <p class="bio">{{ user()!.bio }}</p>
+          <p class="mt-4 leading-relaxed text-text-secondary">{{ user()!.bio }}</p>
         }
 
         @if (user()!.is_ai && user()!.personality) {
-          <div class="personality-section">
-            <h3>Personality</h3>
-            <div class="chips">
+          <div class="mt-6">
+            <h3 class="text-sm text-text-muted uppercase tracking-wider mt-4 mb-2">Personality</h3>
+            <div class="flex gap-1.5 flex-wrap">
               @for (trait of user()!.personality!.traits; track trait) {
-                <span class="chip">{{ trait }}</span>
+                <span class="text-[0.8125rem] px-2.5 py-1 rounded-full bg-blue-50 text-blue-800">{{ trait }}</span>
               }
             </div>
 
-            <h3>Preferred Topics</h3>
-            <div class="chips">
+            <h3 class="text-sm text-text-muted uppercase tracking-wider mt-4 mb-2">Preferred Topics</h3>
+            <div class="flex gap-1.5 flex-wrap">
               @for (topic of user()!.personality!.preferred_topics; track topic) {
-                <span class="chip chip-topic">{{ topic }}</span>
+                <span class="text-[0.8125rem] px-2.5 py-1 rounded-full bg-green-50 text-green-800">{{ topic }}</span>
               }
             </div>
 
-            <p class="stance"><strong>Editorial stance:</strong> {{ user()!.personality!.editorial_stance }}</p>
+            <p class="mt-3 text-sm text-text-secondary"><strong>Editorial stance:</strong> {{ user()!.personality!.editorial_stance }}</p>
           </div>
         }
 
-        <div class="profile-actions">
+        <div class="mt-6">
           <button
-            class="btn-follow"
-            [class.btn-follow--following]="isFollowing()"
+            ngpButton
+            class="px-6 py-2 border rounded-full font-medium transition-all duration-150 data-[disabled]:opacity-60"
+            [class]="isFollowing() ? 'bg-white text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
             [disabled]="followLoading()"
             (click)="toggleFollow()"
           >
@@ -116,178 +122,12 @@ interface UserProfile {
           </button>
         </div>
 
-        <div class="profile-meta">
+        <div class="mt-4 text-[0.8125rem] text-text-faint">
           <span>Joined {{ joinedDate() }}</span>
         </div>
       </div>
     } @else {
-      <div class="loading">Loading profile...</div>
-    }
-  `,
-  styles: `
-    .profile {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 1.5rem;
-    }
-    .profile-header {
-      display: flex;
-      gap: 1.25rem;
-      align-items: flex-start;
-    }
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-    .avatar-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #e5e7eb;
-      color: #374151;
-      font-size: 2rem;
-      font-weight: 600;
-    }
-    .profile-info h1 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-    .handle {
-      color: #6b7280;
-      font-size: 0.875rem;
-    }
-    .badges {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .badge {
-      font-size: 0.75rem;
-      padding: 0.125rem 0.5rem;
-      border-radius: 9999px;
-      font-weight: 500;
-    }
-    .badge-ai {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-    .badge-verified {
-      background: #dcfce7;
-      color: #15803d;
-    }
-    .badge-model {
-      background: #f3e8ff;
-      color: #7c3aed;
-    }
-    .badge-provider {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .badge-human {
-      background: #f3f4f6;
-      color: #374151;
-    }
-    .bio {
-      margin-top: 1rem;
-      line-height: 1.6;
-      color: #374151;
-    }
-    .personality-section {
-      margin-top: 1.5rem;
-    }
-    .personality-section h3 {
-      font-size: 0.875rem;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 1rem 0 0.5rem;
-    }
-    .chips {
-      display: flex;
-      gap: 0.375rem;
-      flex-wrap: wrap;
-    }
-    .chip {
-      font-size: 0.8125rem;
-      padding: 0.25rem 0.625rem;
-      border-radius: 9999px;
-      background: #eff6ff;
-      color: #1e40af;
-    }
-    .chip-topic {
-      background: #f0fdf4;
-      color: #166534;
-    }
-    .stance {
-      margin-top: 0.75rem;
-      font-size: 0.875rem;
-      color: #4b5563;
-    }
-    .profile-actions {
-      margin-top: 1.5rem;
-    }
-    .btn-follow {
-      padding: 0.5rem 1.5rem;
-      border: 1px solid #1d4ed8;
-      border-radius: 9999px;
-      background: #1d4ed8;
-      color: white;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-follow:hover {
-      background: #1e40af;
-    }
-    .btn-follow--following {
-      background: white;
-      color: #374151;
-      border-color: #d1d5db;
-    }
-    .btn-follow--following:hover {
-      border-color: #dc2626;
-      color: #dc2626;
-    }
-    .btn-follow:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-    .follow-stats {
-      display: flex;
-      gap: 1.25rem;
-      margin-top: 0.75rem;
-    }
-    .stat-link {
-      font-size: 0.875rem;
-      color: #6b7280;
-      text-decoration: none;
-    }
-    .stat-link:hover {
-      color: #1d4ed8;
-      text-decoration: underline;
-    }
-    .stat-link strong {
-      color: #111827;
-      font-weight: 600;
-    }
-    .profile-meta {
-      margin-top: 1rem;
-      font-size: 0.8125rem;
-      color: #9ca3af;
-    }
-    .error {
-      text-align: center;
-      padding: 2rem;
-      color: #dc2626;
-    }
-    .loading {
-      text-align: center;
-      padding: 2rem;
-      color: #6b7280;
+      <div class="text-center py-8 text-text-muted">Loading profile...</div>
     }
   `,
 })

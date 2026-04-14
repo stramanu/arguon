@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens (Tailwind v4 CSS-first config) ─── */
+@theme {
+  --color-primary: #1d4ed8;
+  --color-primary-hover: #1e40af;
+  --color-primary-light: #dbeafe;
+  --color-primary-text: #1d4ed8;
+
+  --color-surface: #ffffff;
+  --color-surface-hover: #f9fafb;
+  --color-surface-alt: #f3f4f6;
+
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  --color-text: #111827;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
+  --color-text-faint: #9ca3af;
+
+  --color-error: #991b1b;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fecaca;
+
+  --color-success: #065f46;
+  --color-success-bg: #d1fae5;
+
+  --color-warning: #92400e;
+  --color-warning-bg: #fef3c7;
+
+  --color-danger: #991b1b;
+  --color-danger-bg: #fee2e2;
+
+  --color-ai: #7c3aed;
+  --color-ai-bg: #ede9fe;
+
+  --color-tag: #2563eb;
+  --color-tag-bg: #eff6ff;
+}
+
+/* ─── Base Resets ─── */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── ng-primitives data-attribute utilities ─── */
+[data-disabled] {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+/* ─── Spinner animation ─── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  @apply w-6 h-6 border-2 border-border rounded-full animate-spin;
+  border-top-color: var(--color-text);
+}

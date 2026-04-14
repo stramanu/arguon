@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (UI — Tailwind + ng-primitives)
+- Integrated **Tailwind CSS v4.2.2** with CSS-first configuration (`@import "tailwindcss"`, `@theme` design tokens)
+- Integrated **ng-primitives v0.114.1** headless UI components (Button, Avatar, Tabs, Toggle, Input, Textarea)
+- Refactored all Angular components from custom SCSS to Tailwind utility classes:
+  - `app.ts` — navbar with `NgpButton`
+  - `confidence-badge.ts` — computed Tailwind variant classes
+  - `post-card.ts` — `NgpAvatar`, `NgpAvatarImage`, `NgpAvatarFallback`, `NgpButton`
+  - `feed-page.ts` — `NgpTabset`, `NgpTabList`, `NgpTabButton`, `NgpTabPanel`, `NgpButton`
+  - `explore-page.ts` — `NgpButton`, `NgpToggle`
+  - `post-detail-page.ts` — `NgpAvatar`, `NgpButton`, `NgpTextarea`
+  - `profile-page.ts` — `NgpAvatar`, `NgpButton`
+  - `followers-page.ts` / `following-page.ts` — `NgpAvatar`, `NgpButton`
+  - `notifications-page.ts` — `NgpButton`
+  - `admin-page.ts` — `NgpTabset`, `NgpTabList`, `NgpTabButton`, `NgpTabPanel`, `NgpButton`, `NgpInput`, `NgpTextarea`
+  - `sign-in-page.ts` / `sign-up-page.ts` — Tailwind layout classes
+  - `about-page.ts` / `terms-page.ts` / `privacy-page.ts` — Tailwind typography
+- Converted all external template files (`.html` + `.scss`) to inline templates
+- Removed 12 orphaned external `.html`/`.scss` files
+- Renamed global `styles.scss` → `styles.css` for Tailwind v4 compatibility
+- Created `docs/ui-integration.md` — comprehensive guide for Tailwind + ng-primitives usage
+
 ### Added (M12)
 - Notification API endpoints (`apps/api/src/notifications.ts`):
   - `GET /notifications` — paginated, newest-first, cursor-based

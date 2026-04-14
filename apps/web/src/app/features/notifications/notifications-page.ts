@@ -6,91 +6,59 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { NgpButton } from 'ng-primitives/button';
 import { NotificationService, NotificationEntry } from '../../core/notification.service';
 
 @Component({
   selector: 'app-notifications-page',
-  imports: [DatePipe],
+  imports: [DatePipe, NgpButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="notifications-page">
-      <div class="header">
-        <h1>Notifications</h1>
+    <div class="max-w-[640px] mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">Notifications</h1>
         @if (notificationService.unreadCount() > 0) {
-          <button class="mark-all-btn" (click)="markAllAsRead()">Mark all as read</button>
+          <button ngpButton class="border border-border rounded-md px-3 py-1.5 text-sm text-text-secondary hover:bg-surface-hover" (click)="markAllAsRead()">Mark all as read</button>
         }
       </div>
 
       @if (notificationService.notifications().length === 0 && !notificationService.loading()) {
-        <p class="empty">No notifications yet.</p>
+        <p class="text-text-muted text-center py-8">No notifications yet.</p>
       }
 
-      <ul class="notification-list">
+      <ul class="list-none p-0 m-0">
         @for (notif of notificationService.notifications(); track notif.id) {
           <li
-            class="notification-item"
-            [class.unread]="!notif.is_read"
+            class="flex items-center gap-3 px-3 py-3 border-b border-border cursor-pointer transition-colors hover:bg-surface-hover"
+            [class.bg-blue-50]="!notif.is_read"
             (click)="handleClick(notif)"
           >
-            <div class="notif-icon">
+            <div class="text-xl shrink-0 w-8 text-center">
               @switch (notif.type) {
-                @case ('reply') { <span class="icon">💬</span> }
-                @case ('mention') { <span class="icon">@</span> }
-                @case ('new_post') { <span class="icon">📝</span> }
+                @case ('reply') { <span>💬</span> }
+                @case ('mention') { <span>&#64;</span> }
+                @case ('new_post') { <span>📝</span> }
               }
             </div>
-            <div class="notif-body">
-              <p class="notif-message">{{ describeNotification(notif) }}</p>
-              <time class="notif-time">{{ notif.created_at | date:'short' }}</time>
+            <div class="flex-1 min-w-0">
+              <p class="m-0 text-[0.9rem] text-text">{{ describeNotification(notif) }}</p>
+              <time class="text-xs text-text-faint">{{ notif.created_at | date:'short' }}</time>
             </div>
             @if (!notif.is_read) {
-              <span class="unread-dot"></span>
+              <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>
             }
           </li>
         }
       </ul>
 
       @if (notificationService.loading()) {
-        <p class="loading">Loading...</p>
+        <p class="text-center text-text-muted py-4">Loading...</p>
       }
 
       @if (canLoadMore()) {
-        <button class="load-more-btn" (click)="loadMore()">Load more</button>
+        <button ngpButton class="w-full py-3 mt-2 border border-border rounded-md text-[0.9rem] text-text-secondary hover:bg-surface-hover" (click)="loadMore()">Load more</button>
       }
     </div>
-  `,
-  styles: `
-    .notifications-page { max-width: 640px; margin: 0 auto; }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-    .header h1 { font-size: 1.5rem; font-weight: 700; }
-    .mark-all-btn {
-      background: none; border: 1px solid #d1d5db; border-radius: 6px;
-      padding: 0.4rem 0.75rem; cursor: pointer; font-size: 0.85rem; color: #374151;
-    }
-    .mark-all-btn:hover { background: #f3f4f6; }
-    .empty { color: #6b7280; text-align: center; padding: 2rem 0; }
-    .notification-list { list-style: none; padding: 0; margin: 0; }
-    .notification-item {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.75rem; border-bottom: 1px solid #e5e7eb;
-      cursor: pointer; transition: background 0.15s;
-    }
-    .notification-item:hover { background: #f9fafb; }
-    .notification-item.unread { background: #eff6ff; }
-    .notif-icon { font-size: 1.25rem; flex-shrink: 0; width: 2rem; text-align: center; }
-    .notif-body { flex: 1; min-width: 0; }
-    .notif-message { margin: 0; font-size: 0.9rem; color: #111827; }
-    .notif-time { font-size: 0.75rem; color: #9ca3af; }
-    .unread-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; flex-shrink: 0;
-    }
-    .loading { text-align: center; color: #6b7280; padding: 1rem 0; }
-    .load-more-btn {
-      display: block; width: 100%; padding: 0.75rem; margin-top: 0.5rem;
-      background: none; border: 1px solid #d1d5db; border-radius: 6px;
-      cursor: pointer; font-size: 0.9rem; color: #374151;
-    }
-    .load-more-btn:hover { background: #f3f4f6; }
   `,
 })
 export class NotificationsPage implements OnInit {

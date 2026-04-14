@@ -2,38 +2,44 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avatar';
+import { NgpButton } from 'ng-primitives/button';
 import { FeedService } from '../../core/feed.service';
 import type { UserListItem } from '../../core/api.types';
 
 @Component({
   selector: 'app-following-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton],
   template: `
-    <div class="user-list-page">
-      <h2>Following</h2>
+    <div class="max-w-[600px] mx-auto p-6">
+      <h2 class="text-xl font-semibold mb-4">Following</h2>
       @if (error()) {
-        <p class="error">{{ error() }}</p>
+        <p class="text-error text-center">{{ error() }}</p>
       } @else if (users().length === 0 && !loading()) {
-        <p class="empty">Not following anyone yet.</p>
+        <p class="text-text-muted text-center">Not following anyone yet.</p>
       } @else {
-        <ul class="user-list">
+        <ul class="list-none p-0 m-0">
           @for (u of users(); track u.id) {
-            <li class="user-card">
-              <a [routerLink]="['/u', u.handle]" class="user-link">
-                @if (u.avatar_url) {
-                  <img [src]="u.avatar_url" [alt]="u.name" class="avatar" />
-                } @else {
-                  <div class="avatar avatar-placeholder">{{ u.name.charAt(0) }}</div>
-                }
-                <div class="user-info">
-                  <span class="name">{{ u.name }}</span>
-                  <span class="handle">&#64;{{ u.handle }}</span>
+            <li class="flex items-center justify-between py-3 border-b border-border-light">
+              <a [routerLink]="['/u', u.handle]" class="flex items-center gap-3 no-underline text-inherit">
+                <span ngpAvatar class="w-11 h-11 rounded-full overflow-hidden shrink-0 inline-block">
+                  @if (u.avatar_url) {
+                    <img ngpAvatarImage [src]="u.avatar_url" [alt]="u.name" class="w-full h-full object-cover" />
+                  }
+                  <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted text-lg font-semibold">
+                    {{ u.name.charAt(0) }}
+                  </span>
+                </span>
+                <div class="flex flex-col">
+                  <span class="font-medium text-[0.9375rem]">{{ u.name }}</span>
+                  <span class="text-text-muted text-[0.8125rem]">&#64;{{ u.handle }}</span>
                 </div>
               </a>
               <button
-                class="btn-follow"
-                [class.btn-follow--following]="u.is_following"
+                ngpButton
+                class="px-4 py-1.5 border rounded-full text-[0.8125rem] font-medium shrink-0 transition-all duration-150 data-[disabled]:opacity-60"
+                [class]="u.is_following ? 'bg-white text-text border-border hover:border-red-500 hover:text-red-500' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
                 [disabled]="followLoading().has(u.handle)"
                 (click)="toggleFollow(u)"
               >
@@ -43,51 +49,15 @@ import type { UserListItem } from '../../core/api.types';
           }
         </ul>
         @if (hasMore()) {
-          <button class="btn-load-more" [disabled]="loading()" (click)="loadMore()">
+          <button ngpButton class="block mx-auto mt-4 px-6 py-2 border border-border rounded-lg bg-white text-sm hover:bg-surface-hover data-[disabled]:opacity-60" [disabled]="loading()" (click)="loadMore()">
             {{ loading() ? 'Loading...' : 'Load more' }}
           </button>
         }
       }
       @if (loading() && users().length === 0) {
-        <p class="loading">Loading...</p>
+        <p class="text-text-muted text-center">Loading...</p>
       }
     </div>
-  `,
-  styles: `
-    .user-list-page { max-width: 600px; margin: 0 auto; padding: 1.5rem; }
-    h2 { font-size: 1.25rem; margin: 0 0 1rem; }
-    .user-list { list-style: none; padding: 0; margin: 0; }
-    .user-card {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6;
-    }
-    .user-link { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit; }
-    .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-    .avatar-placeholder {
-      display: flex; align-items: center; justify-content: center;
-      background: #e5e7eb; color: #374151; font-size: 1.125rem; font-weight: 600;
-    }
-    .user-info { display: flex; flex-direction: column; }
-    .name { font-weight: 500; font-size: 0.9375rem; }
-    .handle { color: #6b7280; font-size: 0.8125rem; }
-    .btn-follow {
-      padding: 0.375rem 1rem; border: 1px solid #1d4ed8; border-radius: 9999px;
-      background: #1d4ed8; color: white; font-size: 0.8125rem; font-weight: 500;
-      cursor: pointer; transition: all 0.15s; flex-shrink: 0;
-    }
-    .btn-follow:hover { background: #1e40af; }
-    .btn-follow--following { background: white; color: #374151; border-color: #d1d5db; }
-    .btn-follow--following:hover { border-color: #dc2626; color: #dc2626; }
-    .btn-follow:disabled { opacity: 0.6; cursor: wait; }
-    .btn-load-more {
-      display: block; margin: 1rem auto; padding: 0.5rem 1.5rem;
-      border: 1px solid #d1d5db; border-radius: 0.5rem;
-      background: white; cursor: pointer; font-size: 0.875rem;
-    }
-    .btn-load-more:hover { background: #f9fafb; }
-    .btn-load-more:disabled { opacity: 0.6; cursor: wait; }
-    .error { color: #dc2626; text-align: center; }
-    .empty, .loading { color: #6b7280; text-align: center; }
   `,
 })
 export class FollowingPage {
