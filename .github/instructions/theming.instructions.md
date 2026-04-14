@@ -11,8 +11,8 @@ Arguon uses class-based dark mode with Tailwind CSS v4 semantic tokens. All comp
 
 | Layer | File | Purpose |
 |---|---|---|
-| Design tokens | `src/styles.css` `@theme { }` | Defines semantic color CSS custom properties |
-| Dark overrides | `src/styles.css` `.dark { }` | Overrides token values when `.dark` class is on `<html>` |
+| Design tokens | `src/styles.scss` `@theme { }` | Defines semantic color CSS custom properties |
+| Dark overrides | `src/styles.scss` `.dark { }` | Overrides token values when `.dark` class is on `<html>` |
 | Custom variant | `@custom-variant dark (…)` | Enables `dark:` prefix in Tailwind utilities |
 | State service | `core/theme.service.ts` | Signal-based, persists to `localStorage`, respects `prefers-color-scheme` |
 | Toggle UI | `shared/theme-toggle/` | `NgpSwitch` component in the app footer |
@@ -35,25 +35,25 @@ These map to Tailwind utility classes (e.g. `bg-surface`, `text-text-muted`, `bo
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| `primary` | `#1d4ed8` | `#60a5fa` | CTA buttons, active tabs, links |
-| `primary-hover` | `#1e40af` | `#93bbfd` | Hover state of primary |
-| `primary-light` | `#dbeafe` | `#1e3a5f` | Subtle primary backgrounds |
-| `primary-text` | `#1d4ed8` | `#93c5fd` | Primary-colored text |
-| `surface` | `#ffffff` | `#0f172a` | Page/card backgrounds |
-| `surface-hover` | `#f9fafb` | `#1e293b` | Hover state of surfaces |
-| `surface-alt` | `#f3f4f6` | `#1e293b` | Alternate/secondary surfaces |
-| `border` | `#e5e7eb` | `#334155` | Default borders |
-| `border-light` | `#f3f4f6` | `#1e293b` | Subtle dividers |
-| `text` | `#111827` | `#f1f5f9` | Primary text |
-| `text-secondary` | `#374151` | `#cbd5e1` | Secondary text |
-| `text-muted` | `#6b7280` | `#94a3b8` | Muted/tertiary text |
-| `text-faint` | `#9ca3af` | `#64748b` | Faintest text (placeholders) |
+| `primary` | `#285A48` | `#408A71` | CTA buttons, active tabs, links |
+| `primary-hover` | `#091413` | `#B0E4CC` | Hover state of primary |
+| `primary-light` | `#B0E4CC` | `#091413` | Subtle primary backgrounds |
+| `primary-text` | `#285A48` | `#B0E4CC` | Primary-colored text |
+| `surface` | `#ffffff` | `#091413` | Page/card backgrounds |
+| `surface-hover` | `#f5faf8` | `#0f2420` | Hover state of surfaces |
+| `surface-alt` | `#eef6f2` | `#132e27` | Alternate/secondary surfaces |
+| `border` | `#d1e5db` | `#285A48` | Default borders |
+| `border-light` | `#e8f3ed` | `#132e27` | Subtle dividers |
+| `text` | `#091413` | `#e8f3ed` | Primary text |
+| `text-secondary` | `#1a3d30` | `#B0E4CC` | Secondary text |
+| `text-muted` | `#5a7d6e` | `#6fa68e` | Muted/tertiary text |
+| `text-faint` | `#8baa9c` | `#408A71` | Faintest text (placeholders) |
 | `error` / `error-bg` / `error-border` | reds | dark reds | Error states |
 | `success` / `success-bg` | greens | dark greens | Success states |
 | `warning` / `warning-bg` | ambers | dark ambers | Warning states |
 | `danger` / `danger-bg` | reds | dark reds | Danger/destructive |
 | `ai` / `ai-bg` | purples | dark purples | AI-generated content |
-| `tag` / `tag-bg` | blues | dark blues | Tags and badges |
+| `tag` / `tag-bg` | greens | dark greens | Tags and badges |
 
 ### 3. When you genuinely need a fixed color, use `dark:` variant
 
@@ -67,7 +67,7 @@ Some elements need a fixed color that does not come from tokens (e.g. a white sw
 <span class="bg-white dark:bg-slate-200"></span>
 ```
 
-Use `dark:` **only** when semantic tokens don't cover the case. The `dark:` variant is configured via `@custom-variant dark (&:where(.dark, .dark *))` in `styles.css`.
+Use `dark:` **only** when semantic tokens don't cover the case. The `dark:` variant is configured via `@custom-variant dark (&:where(.dark, .dark *))` in `styles.scss`.
 
 ### 4. Active/selected states: invert with `text` + `surface`
 
@@ -86,7 +86,7 @@ This creates a natural inversion in both themes.
 
 ### 5. Primary accent buttons always use `text-white`
 
-For buttons with `bg-primary`, use `text-white` (not `text-surface`) because the primary blue always needs white text for contrast:
+For buttons with `bg-primary`, use `text-white` (not `text-surface`) because the primary green always needs white text for contrast:
 
 ```html
 <button class="bg-primary text-white border-primary hover:bg-primary-hover">
@@ -113,7 +113,7 @@ ng-primitives components expose state via `data-*` attributes. Use Tailwind's `d
   <span ngpSwitchThumb class="bg-white data-[checked]:translate-x-[1.25rem]"></span>
 </button>
 
-<!-- NgpButton — disabled state (also handled globally in styles.css) -->
+<!-- NgpButton — disabled state (also handled globally in styles.scss) -->
 <button ngpButton class="bg-primary text-white data-[disabled]:opacity-60">Save</button>
 
 <!-- NgpTabButton — active tab -->

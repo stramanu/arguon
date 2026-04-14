@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extracted all 18 Angular components from single-file (inline `template:`) to 3-file structure (`.ts`, `.html`, `.scss`)
 - All component SCSS files wrapped in `:host {}` for atomic style encapsulation
 - Updated Angular coding instructions to enforce 3-file convention and `:host {}` rule
+- Replaced blue color palette with green palette (#091413, #285A48, #408A71, #B0E4CC) for both light and dark themes
+- Harmonized surface, border, text, tag tokens with the new green palette
+
+### Fixed
+- Silenced Dart Sass `@import` deprecation warning via `stylePreprocessorOptions` in `angular.json`
 
 ### Added
 - Dark/light theme toggle switch in footer using `NgpSwitch` from ng-primitives
@@ -40,7 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `about-page.ts` / `terms-page.ts` / `privacy-page.ts` — Tailwind typography
 - Converted all external template files (`.html` + `.scss`) to inline templates
 - Removed 12 orphaned external `.html`/`.scss` files
-- Renamed global `styles.scss` → `styles.css` for Tailwind v4 compatibility
 - Created `docs/ui-integration.md` — comprehensive guide for Tailwind + ng-primitives usage
 
 ### Added (M12)

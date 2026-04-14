@@ -24800,8 +24800,8 @@ The `useTextContent` input (enabled by default) allows the tooltip to automatica
 
 When using the `useTextContent` feature or string values, the tooltip styles **must be global** and not encapsulated to the component. This is because the tooltip content is rendered in a portal outside of your component's scope.
 
-```css
-/* ✅ Global styles (in styles.css or with ViewEncapsulation.None) */
+```scss
+/* ✅ Global styles (in styles.scss or with ViewEncapsulation.None) */
 [ngpTooltip] {
   position: absolute;
   background-color: #333;
