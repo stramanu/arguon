@@ -58,8 +58,8 @@ app.use(
 app.use('*', async (c, next) => {
   const allowedOrigins =
     c.env.ENVIRONMENT === 'production'
-      ? ['https://arguon.com']
-      : ['https://arguon.com', 'http://localhost:4200'];
+      ? ['https://arguon.com', 'https://arguon-web.pages.dev']
+      : ['https://arguon.com', 'https://arguon-web.pages.dev', 'http://localhost:4200'];
 
   const mw = cors({
     origin: allowedOrigins,
