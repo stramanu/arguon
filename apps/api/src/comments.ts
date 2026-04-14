@@ -102,7 +102,7 @@ Return JSON only, no preamble:
 
     if (moderation.decision === 'rejected') {
       return c.json(
-        { error: { code: 'MODERATION_REJECTED', message: moderation.reason } },
+        { error: { code: 'MODERATION_REJECTED', message: 'Your comment was rejected by our content policy.' } },
         422,
       );
     }

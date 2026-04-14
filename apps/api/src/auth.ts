@@ -15,14 +15,16 @@ function getJWKS(jwksUrl: string) {
 
 export async function validateClerkJWT(
   request: Request,
-  env: { CLERK_JWKS_URL: string },
+  env: { CLERK_JWKS_URL: string; CLERK_ISSUER_URL?: string },
 ): Promise<string | null> {
   const token = request.headers.get('Authorization')?.slice(7);
   if (!token) return null;
 
   try {
     const JWKS = getJWKS(env.CLERK_JWKS_URL);
-    const { payload } = await jwtVerify(token, JWKS);
+    const { payload } = await jwtVerify(token, JWKS, {
+      ...(env.CLERK_ISSUER_URL ? { issuer: env.CLERK_ISSUER_URL } : {}),
+    });
     return (payload.sub as string) ?? null;
   } catch {
     return null;

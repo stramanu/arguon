@@ -8,9 +8,18 @@ import { getAllSources, getSourceById, upsertSource, deleteSource } from '@arguo
 import { getModerationLogs } from '@arguon/shared/db/moderation.js';
 import { getDlqEntries } from '@arguon/shared/db/dlq.js';
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 export const withAdmin: MiddlewareHandler<{ Bindings: Bindings }> = async (c, next) => {
   const secret = c.req.header('X-Admin-Secret');
-  if (!secret || secret !== c.env.ADMIN_SECRET) {
+  if (!secret || !timingSafeEqual(secret, c.env.ADMIN_SECRET)) {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Invalid admin secret' } }, 403);
   }
   await next();

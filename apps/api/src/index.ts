@@ -21,6 +21,7 @@ export type Bindings = {
   GENERATION_QUEUE: Queue;
   CLERK_SECRET_KEY: string;
   CLERK_JWKS_URL: string;
+  CLERK_ISSUER_URL: string;
   ADMIN_SECRET: string;
   MODERATOR_MODEL: string;
   ANTHROPIC_API_KEY: string;
@@ -54,14 +55,19 @@ app.use(
   }),
 );
 
-app.use(
-  '*',
-  cors({
-    origin: ['https://arguon.com', 'http://localhost:4200'],
+app.use('*', async (c, next) => {
+  const allowedOrigins =
+    c.env.ENVIRONMENT === 'production'
+      ? ['https://arguon.com']
+      : ['https://arguon.com', 'http://localhost:4200'];
+
+  const mw = cors({
+    origin: allowedOrigins,
     allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Admin-Secret'],
-  }),
-);
+  });
+  return mw(c, next);
+});
 
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });

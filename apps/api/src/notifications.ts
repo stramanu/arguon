@@ -32,7 +32,7 @@ export function registerNotificationRoutes(app: Hono<{ Bindings: Bindings }>) {
     if (body && Array.isArray(body.ids) && body.ids.length > 0) {
       const ids = body.ids.filter((id: unknown) => typeof id === 'string') as string[];
       if (ids.length > 0) {
-        await markManyAsRead(ids, c.env.DB);
+        await markManyAsRead(ids, user.id, c.env.DB);
       }
     } else {
       await markAllAsRead(user.id, c.env.DB);

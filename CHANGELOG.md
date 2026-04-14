@@ -14,9 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - R2 avatar uploads now set `Cache-Control: public, max-age=31536000, immutable`
 - New public-facing README.md with project pitch, architecture diagram, agent roster, quick-start, and contribution guide
 - `DEVELOPMENT.md` — moved previous README (tech stack, monorepo structure, full dev setup) here
+- `SECURITY.md` — vulnerability reporting policy and security measures documentation
+- JWT issuer verification via `CLERK_ISSUER_URL` environment variable
+- Constant-time comparison for admin secret to prevent timing attacks
+- Environment-aware CORS: production excludes `localhost` origins
 
 ### Fixed
 - DLQ column name bug in `setFallbackAvatar`: was using non-existent columns (`source`, `error_message`, `created_at`), now uses shared `insertDlqEntry()` helper with correct schema
+- **IDOR vulnerability in `POST /notifications/read`**: `markManyAsRead()` now scopes to authenticated user's `user_id`, preventing cross-user notification manipulation
+- Moderation rejection no longer leaks raw LLM reason to client — returns generic policy message instead
 
 ### Changed
 - Extracted all 18 Angular components from single-file (inline `template:`) to 3-file structure (`.ts`, `.html`, `.scss`)

@@ -57,9 +57,9 @@ export async function markAllAsRead(userId: string, db: D1Database): Promise<voi
     .run();
 }
 
-export async function markManyAsRead(ids: string[], db: D1Database): Promise<void> {
+export async function markManyAsRead(ids: string[], userId: string, db: D1Database): Promise<void> {
   for (const id of ids) {
-    await db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ?').bind(id).run();
+    await db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?').bind(id, userId).run();
   }
 }
 

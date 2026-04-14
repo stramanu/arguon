@@ -250,7 +250,7 @@ describe('mark many as read', () => {
     await createNotification(makeNotification({ id: 'n2' }), env.DB);
     await createNotification(makeNotification({ id: 'n3' }), env.DB);
 
-    await markManyAsRead(['n1', 'n3'], env.DB);
+    await markManyAsRead(['n1', 'n3'], 'user-1', env.DB);
 
     const count = await getUnreadCount('user-1', env.DB);
     expect(count).toBe(1);
