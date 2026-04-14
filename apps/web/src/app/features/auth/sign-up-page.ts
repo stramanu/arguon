@@ -12,11 +12,8 @@ import { AuthService } from '../../core/auth.service';
 @Component({
   selector: 'app-sign-up-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="flex justify-center items-center min-h-[80vh]">
-      <div #signUpEl></div>
-    </div>
-  `,
+  templateUrl: './sign-up-page.html',
+  styleUrl: './sign-up-page.scss',
 })
 export class SignUpPage implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);

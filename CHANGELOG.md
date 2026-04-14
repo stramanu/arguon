@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Extracted all 18 Angular components from single-file (inline `template:`) to 3-file structure (`.ts`, `.html`, `.scss`)
+- All component SCSS files wrapped in `:host {}` for atomic style encapsulation
+- Updated Angular coding instructions to enforce 3-file convention and `:host {}` rule
+
 ### Added
 - Dark/light theme toggle switch in footer using `NgpSwitch` from ng-primitives
 - `ThemeService` — persists preference in `localStorage`, respects `prefers-color-scheme` on first visit

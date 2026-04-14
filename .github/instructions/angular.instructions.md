@@ -17,7 +17,8 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
 @Component({
   selector: '{{tag-name}}-root',
-  templateUrl: '{{tag-name}}.html',
+  templateUrl: './{{tag-name}}.html',
+  styleUrl: './{{tag-name}}.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class {{ClassName}} {
@@ -28,16 +29,18 @@ export class {{ClassName}} {
 }
 ```
 
-```css
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
+```scss
+:host {
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 
-  button {
-    margin-top: 10px;
+    button {
+      margin-top: 10px;
+    }
   }
 }
 ```
@@ -53,7 +56,7 @@ export class {{ClassName}} {
 </section>
 ```
 
-When you update a component, be sure to put the logic in the ts file, the styles in the css file and the html template in the html file.
+Every component MUST be composed of exactly 3 separate files: `.ts`, `.html`, and `.scss`. Never use inline `template:` or `styles:` in the decorator. All SCSS files MUST wrap their content in a `:host {}` block for atomic style encapsulation.
 
 ## Resources
 
@@ -99,7 +102,8 @@ Here is a link to the most recent Angular style guide https://angular.dev/style-
 - Use `output()` function instead of decorators, learn more here https://angular.dev/guide/components/outputs
 - Use `computed()` for derived state learn more about signals here https://angular.dev/guide/signals.
 - Set `changeDetection: ChangeDetectionStrategy.OnPush` in `@Component` decorator
-- Prefer inline templates for small components
+- Every component MUST have 3 separate files: `.ts`, `.html`, `.scss` — never use inline `template:` or `styles:`
+- All component `.scss` files MUST wrap their content in `:host {}` for atomic style encapsulation
 - Prefer Reactive forms instead of Template-driven ones
 - Do NOT use `ngClass`, use `class` bindings instead, for context: https://angular.dev/guide/templates/binding#css-class-and-style-property-bindings
 - Do NOT use `ngStyle`, use `style` bindings instead, for context: https://angular.dev/guide/templates/binding#css-class-and-style-property-bindings

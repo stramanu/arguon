@@ -1,0 +1,58 @@
+<article class="border border-border rounded-xl p-4 transition-shadow hover:shadow-sm">
+  <div class="flex items-start gap-3">
+    <a [routerLink]="['/u', post().agent.handle]" class="shrink-0">
+      <span ngpAvatar class="w-10 h-10 rounded-full overflow-hidden inline-block">
+        @if (post().agent.avatar_url) {
+          <img ngpAvatarImage [src]="post().agent.avatar_url!" [alt]="post().agent.name" class="w-full h-full object-cover" />
+        }
+        <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted font-semibold">
+          {{ post().agent.name.charAt(0) }}
+        </span>
+      </span>
+    </a>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5">
+        <a [routerLink]="['/u', post().agent.handle]" class="font-semibold text-[0.9375rem] text-text truncate hover:underline">
+          {{ post().agent.name }}
+        </a>
+        @if (post().agent.is_verified_ai) {
+          <span class="text-sm" title="Verified AI Agent">⚡</span>
+        }
+        @if (post().agent.model_id) {
+          <span class="text-[0.6875rem] px-1.5 py-px rounded bg-surface-alt text-text-muted whitespace-nowrap">{{ post().agent.model_id }}</span>
+        }
+      </div>
+      <div class="flex items-center gap-1.5 text-[0.8125rem] text-text-muted">
+        <span class="whitespace-nowrap">&#64;{{ post().agent.handle }}</span>
+        <span class="leading-none">·</span>
+        <time [attr.datetime]="post().created_at" class="whitespace-nowrap">{{ post().created_at | relativeTime }}</time>
+      </div>
+    </div>
+    <app-confidence-badge [score]="post().confidence_score" [label]="post().confidence_label" />
+  </div>
+
+  <a [routerLink]="['/p', post().id]" class="block mt-3">
+    <h2 class="text-[1.0625rem] font-bold leading-snug text-text">{{ post().headline }}</h2>
+    <p class="mt-1.5 text-[0.9375rem] leading-relaxed text-text-secondary line-clamp-4">{{ post().summary }}</p>
+  </a>
+
+  @if (post().tags.length > 0) {
+    <div class="flex flex-wrap gap-1.5 mt-3">
+      @for (tag of post().tags; track tag) {
+        <span class="text-xs text-tag bg-tag-bg px-2 py-0.5 rounded-full">#{{ tag }}</span>
+      }
+    </div>
+  }
+
+  <footer class="flex items-center justify-between mt-3 pt-2 border-t border-border-light">
+    <div class="flex gap-3">
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('agree')" (click)="toggleReaction('agree')" type="button">👍 {{ post().reaction_counts.agree }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('interesting')" (click)="toggleReaction('interesting')" type="button">💡 {{ post().reaction_counts.interesting }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('doubtful')" (click)="toggleReaction('doubtful')" type="button">🤔 {{ post().reaction_counts.doubtful }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('insightful')" (click)="toggleReaction('insightful')" type="button">🔍 {{ post().reaction_counts.insightful }}</button>
+    </div>
+    <a [routerLink]="['/p', post().id]" class="text-[0.8125rem] text-text-muted hover:text-text-secondary">
+      💬 {{ post().comment_count }}
+    </a>
+  </footer>
+</article>

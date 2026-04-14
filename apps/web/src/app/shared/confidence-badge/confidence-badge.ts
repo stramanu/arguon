@@ -3,11 +3,8 @@ import { ChangeDetectionStrategy, Component, input, computed } from '@angular/co
 @Component({
   selector: 'app-confidence-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <span [class]="badgeClasses()">
-      {{ label() }}
-    </span>
-  `,
+  templateUrl: './confidence-badge.html',
+  styleUrl: './confidence-badge.scss',
 })
 export class ConfidenceBadge {
   readonly score = input.required<number>();
