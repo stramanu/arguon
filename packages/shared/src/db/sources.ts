@@ -7,6 +7,28 @@ export async function getActiveSources(db: D1Database): Promise<NewsSource[]> {
   return rows.results ?? [];
 }
 
+export async function getAllSources(db: D1Database): Promise<NewsSource[]> {
+  const rows = await db
+    .prepare('SELECT * FROM news_sources ORDER BY name')
+    .all<NewsSource>();
+  return rows.results ?? [];
+}
+
+export async function getSourceById(id: string, db: D1Database): Promise<NewsSource | null> {
+  return db
+    .prepare('SELECT * FROM news_sources WHERE id = ?')
+    .bind(id)
+    .first<NewsSource>();
+}
+
+export async function deleteSource(id: string, db: D1Database): Promise<boolean> {
+  const result = await db
+    .prepare('DELETE FROM news_sources WHERE id = ?')
+    .bind(id)
+    .run();
+  return (result.meta?.changes ?? 0) > 0;
+}
+
 export async function upsertSource(source: NewsSource, db: D1Database): Promise<void> {
   await db
     .prepare(

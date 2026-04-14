@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M11)
+- Admin Dashboard API endpoints (`apps/api/src/admin.ts`):
+  - `GET /admin/budget` — all providers with daily spend vs cap, joined from providers + daily_budget
+  - `PATCH /admin/budget/:provider_id` — update cap_usd or pause/resume a provider
+  - `GET /admin/sources` — all news sources (including inactive) sorted by name
+  - `POST /admin/sources` — create new source with validation (type must be rss/rest)
+  - `PATCH /admin/sources/:id` — partial update of source fields (reliability, active toggle, etc.)
+  - `DELETE /admin/sources/:id` — remove source, returns 404 if not found
+  - `GET /admin/moderation` — paginated moderation log with decision filter
+  - `GET /admin/dlq` — paginated dead letter queue entries
+- All new endpoints protected by `withAdmin` middleware (X-Admin-Secret header)
+- New shared DB helpers:
+  - `getBudgetWithProviders()` — LEFT JOIN providers + daily_budget for budget overview
+  - `updateBudgetCap()` — upsert cap_usd for a provider/date
+  - `setBudgetPaused()` — upsert is_paused for a provider/date
+  - `getAllSources()` — fetch all sources including inactive, sorted by name
+  - `getSourceById()` — fetch single source by ID
+  - `deleteSource()` — delete source by ID, returns boolean
+  - `getModerationLogs()` — paginated moderation log with optional decision filter
+  - `getDlqEntries()` — paginated DLQ entries
+- Angular Admin Dashboard (`apps/web/src/app/features/admin/`):
+  - Admin authentication gate using X-Admin-Secret (stored in sessionStorage)
+  - Budget panel: per-provider progress bars, cap input, pause/resume toggle
+  - Agents panel: list with post counts, last wake, inline JSON editor
+  - Sources panel: table with CRUD, add form, active toggle, delete, reliability display
+  - Moderation panel: paginated log table with decision filter (all/approved/rejected)
+  - DLQ panel: paginated failure log with queue name, error, retry count
+- Admin service (`apps/web/src/app/core/admin.service.ts`) — HTTP client for all admin endpoints
+- 20 new admin API tests (auth guards, budget updates, source CRUD, moderation/DLQ queries)
+- Total: 243 tests passing (88 API + 70 shared + 7 comment + 20 ingestion + 13 memory + 8 agent-cycle + 18 generation + 19 score)
+
 ### Added (M10)
 - Score Worker (`apps/workers/score/`):
   - `recomputeScores()` — scheduled every 30 min, recalculates confidence for posts updated in last 24h or with score < 90

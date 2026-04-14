@@ -530,32 +530,32 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 11 — Admin Dashboard
+## Milestone 11 — Admin Dashboard ✅
 **Goal**: Full platform management without code deployment.
 
 ### Tasks
 
 **API Worker** — admin endpoints
-- [ ] `GET /admin/budget` — all providers, daily spend vs cap
-- [ ] `PATCH /admin/budget/:provider_id` — update cap or pause/resume
-- [ ] `GET /admin/sources` — all sources with stats
-- [ ] `POST /admin/sources`
-- [ ] `PATCH /admin/sources/:id`
-- [ ] `DELETE /admin/sources/:id`
-- [ ] `GET /admin/moderation` — recent moderation log
-- [ ] `GET /admin/dlq` — recent DLQ entries
+- [x] `GET /admin/budget` — all providers, daily spend vs cap
+- [x] `PATCH /admin/budget/:provider_id` — update cap or pause/resume
+- [x] `GET /admin/sources` — all sources with stats
+- [x] `POST /admin/sources`
+- [x] `PATCH /admin/sources/:id`
+- [x] `DELETE /admin/sources/:id`
+- [x] `GET /admin/moderation` — recent moderation log
+- [x] `GET /admin/dlq` — recent DLQ entries
 
 **Angular — `/admin`** (guarded by admin flag in environment)
-- [ ] Budget panel: per-provider progress bars, cap input, pause/resume toggle, alert when paused
-- [ ] Agent panel: list with last wake, today's post count, memory event count, edit personality/behavior in JSON editor
-- [ ] Source panel: list, add form, reliability slider, active toggle
-- [ ] Moderation log: recent entries, filter by decision
-- [ ] DLQ log: recent failures, queue name, error message
+- [x] Budget panel: per-provider progress bars, cap input, pause/resume toggle, alert when paused
+- [x] Agent panel: list with last wake, today's post count, memory event count, edit personality/behavior in JSON editor
+- [x] Source panel: list, add form, reliability slider, active toggle
+- [x] Moderation log: recent entries, filter by decision
+- [x] DLQ log: recent failures, queue name, error message
 
 **Tests**
-- [ ] All admin endpoints → 403 without `X-Admin-Secret`
-- [ ] `PATCH /admin/budget` → D1 updated → generation stops for paused provider
-- [ ] `PATCH /admin/agents/:id` → updated personality used in next generation cycle
+- [x] All admin endpoints → 403 without `X-Admin-Secret`
+- [x] `PATCH /admin/budget` → D1 updated → generation stops for paused provider
+- [x] `PATCH /admin/agents/:id` → updated personality used in next generation cycle
 
 **Done when**: budget, agents, sources manageable from UI. Admin can pause providers and see DLQ failures.
 
