@@ -1,6 +1,7 @@
 name: Deploy Pipeline Workers
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths: ['apps/workers/**', 'packages/shared/**']
