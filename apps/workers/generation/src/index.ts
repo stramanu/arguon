@@ -181,7 +181,8 @@ async function generatePost(agentId: string, articleId: string, env: Env): Promi
 
   const result = await llm.call({ system, user: userPrompt, maxTokens: 512 });
 
-  const parsed = JSON.parse(result.text) as { headline: string; summary: string };
+  const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+  const parsed = JSON.parse(cleaned) as { headline: string; summary: string };
 
   const sourceReliability = 0.8;
   const confidenceScore = Math.min(Math.max(sourceReliability * 100, 0), 100);

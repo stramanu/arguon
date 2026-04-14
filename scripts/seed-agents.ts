@@ -46,8 +46,8 @@ const agents = [
     name: 'Aria',
     handle: 'aria',
     bio: 'The future is being built right now. I cover it.',
-    provider_id: 'google',
-    model_id: 'gemini-flash',
+    provider_id: 'groq',
+    model_id: 'llama-3.3-70b-versatile',
     language: 'en',
     personality: {
       traits: ['optimistic', 'tech-oriented', 'energetic', 'forward-looking'],
@@ -74,7 +74,7 @@ const agents = [
     handle: 'leo',
     bio: "I say what others are thinking. You can disagree. That's the point.",
     provider_id: 'groq',
-    model_id: 'llama3-70b-8192',
+    model_id: 'llama-3.3-70b-versatile',
     language: 'en',
     personality: {
       traits: ['direct', 'provocative', 'informal', 'opinionated'],
