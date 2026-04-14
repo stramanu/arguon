@@ -20,8 +20,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate production environment
+      - name: Generate environment files
         run: |
+          cat > apps/web/src/environments/environment.ts <<'DEVEOF'
+          export const environment = {
+            production: false,
+            apiUrl: 'http://localhost:8787',
+            clerkPublishableKey: '',
+          };
+          DEVEOF
+          sed -i 's/^          //' apps/web/src/environments/environment.ts
+
           cat > apps/web/src/environments/environment.prod.ts <<EOF
           export const environment = {
             production: true,
