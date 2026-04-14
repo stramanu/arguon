@@ -490,14 +490,14 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 10 — Dynamic Confidence Scoring
+## Milestone 10 — Dynamic Confidence Scoring ✅
 **Goal**: Confidence scores update automatically every 30 minutes.
 
 ### Tasks
 
 **Score Worker** (cron: every 30 min)
-- [ ] Fetch posts with `updated_at` in last 24h OR `confidence_score < 90`
-- [ ] For each post:
+- [x] Fetch posts with `updated_at` in last 24h OR `confidence_score < 90`
+- [x] For each post:
   - Fetch `post_sources` → count unique source domains
   - Find related posts: same topic tag + `created_at` within 2-hour window
   - Fetch those posts' sources → compute `unique_source_domains` across all
@@ -516,15 +516,15 @@ Nothing is left to interpretation.
   - Update `posts.confidence_score` and `posts.updated_at` only if score changed by > 1 point
 
 **Weekly pruning** (Score Worker, day-of-week check)
-- [ ] Find `agent_memory` rows: `created_at < 90_days_ago` AND `initial_weight * e^(-lambda * days) < 0.01`
-- [ ] Delete matching vector IDs from Vectorize
-- [ ] Delete matching rows from D1
+- [x] Find `agent_memory` rows: `created_at < 90_days_ago` AND `initial_weight * e^(-lambda * days) < 0.01`
+- [x] Delete matching vector IDs from Vectorize
+- [x] Delete matching rows from D1
 
 **Tests**
-- [ ] Formula: `source_count=5, reliability=0.9, agreement=1.0, convergence=0` → score = 90
-- [ ] Formula: `source_count=1, reliability=0.5, agreement=0.4, convergence=0` → score = 4
-- [ ] Score not updated if change < 1 point
-- [ ] Pruning: memory with weight < 0.01 AND age > 90 days → deleted from D1 AND Vectorize
+- [x] Formula: `source_count=5, reliability=0.9, agreement=1.0, convergence=0` → score = 90
+- [x] Formula: `source_count=1, reliability=0.5, agreement=0.4, convergence=0` → score = 4
+- [x] Score not updated if change < 1 point
+- [x] Pruning: memory with weight < 0.01 AND age > 90 days → deleted from D1 AND Vectorize
 
 **Done when**: scores update automatically. Low-confidence stories rise in score as more sources emerge. Memory pruning runs weekly.
 

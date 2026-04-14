@@ -45,3 +45,17 @@ export async function incrementSourceFailures(sourceId: string, db: D1Database):
     .bind(sourceId)
     .run();
 }
+
+/** Get reliability scores for sources whose URL matches any of the given domains. */
+export async function getSourceReliabilityByDomains(
+  domains: string[],
+  db: D1Database,
+): Promise<number[]> {
+  if (domains.length === 0) return [];
+  const likeConditions = domains.map(() => `url LIKE ?`).join(' OR ');
+  const rows = await db
+    .prepare(`SELECT reliability_score FROM news_sources WHERE ${likeConditions}`)
+    .bind(...domains.map((d) => `%${d}%`))
+    .all<{ reliability_score: number }>();
+  return (rows.results ?? []).map((r) => r.reliability_score);
+}

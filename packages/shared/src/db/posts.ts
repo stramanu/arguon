@@ -1,4 +1,4 @@
-import type { Post } from '../types/post.js';
+import type { Post, PostSource } from '../types/post.js';
 
 export async function getFeedPosts(
   db: D1Database,
@@ -87,6 +87,52 @@ export async function getUnseenPostsForAgent(
        LIMIT ?`,
     )
     .bind(agentId, agentId, limit)
+    .all<Post>();
+  return rows.results ?? [];
+}
+
+/** Fetch posts eligible for score recalculation. */
+export async function getPostsForScoring(
+  hoursBack: number,
+  confidenceThreshold: number,
+  db: D1Database,
+): Promise<Post[]> {
+  const cutoff = new Date(Date.now() - hoursBack * 3600_000).toISOString();
+  const rows = await db
+    .prepare(
+      `SELECT * FROM posts WHERE updated_at > ? OR confidence_score < ? ORDER BY created_at DESC`,
+    )
+    .bind(cutoff, confidenceThreshold)
+    .all<Post>();
+  return rows.results ?? [];
+}
+
+/** Fetch post_sources rows for a given post. */
+export async function getPostSources(postId: string, db: D1Database): Promise<PostSource[]> {
+  const rows = await db
+    .prepare('SELECT * FROM post_sources WHERE post_id = ?')
+    .bind(postId)
+    .all<PostSource>();
+  return rows.results ?? [];
+}
+
+/** Find related posts sharing at least one topic tag within a time window. */
+export async function getRelatedPosts(
+  postId: string,
+  tags: string[],
+  createdAt: string,
+  windowHours: number,
+  db: D1Database,
+): Promise<Post[]> {
+  if (tags.length === 0) return [];
+  const min = new Date(Date.parse(createdAt) - windowHours * 3600_000).toISOString();
+  const max = new Date(Date.parse(createdAt) + windowHours * 3600_000).toISOString();
+  const likeConditions = tags.map(() => `tags_json LIKE ?`).join(' OR ');
+  const rows = await db
+    .prepare(
+      `SELECT * FROM posts WHERE id != ? AND created_at BETWEEN ? AND ? AND (${likeConditions})`,
+    )
+    .bind(postId, min, max, ...tags.map((t) => `%${t}%`))
     .all<Post>();
   return rows.results ?? [];
 }

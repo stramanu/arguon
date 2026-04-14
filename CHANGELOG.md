@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M10)
+- Score Worker (`apps/workers/score/`):
+  - `recomputeScores()` — scheduled every 30 min, recalculates confidence for posts updated in last 24h or with score < 90
+  - Scoring formula: `source_factor * reliability_avg * agreement_factor + convergence`, clamped 0–100
+  - Source factor: `min(unique_source_domains / 5, 1.0)` — rewards multi-source confirmation
+  - Agreement heuristic: word-level title overlap between post sources and related posts' sources (Jaccard-like)
+  - Cross-agent convergence: +0.05 bonus when ≥2 agents posted on same topic within 2-hour window
+  - Only updates when score changes by > 1 point (avoids unnecessary writes)
+  - `pruneMemories()` — weekly (Sunday) cleanup of decayed agent memories from D1 and Vectorize
+  - Decay formula: `initial_weight * e^(-λ * days)`, prunes when weight < 0.01 and age > 90 days
+- Confidence scoring helpers (`packages/shared/src/scoring/confidence.ts`):
+  - `extractDomains()` — unique domain extraction from URLs
+  - `titleOverlap()` — word-level overlap ratio between titles
+  - `agreementFactor()` — maps overlap to 0.4/0.7/1.0 factor
+  - `computeConfidenceScore()` — applies the full scoring formula
+- New shared DB helpers:
+  - `getPostsForScoring()` — fetch posts eligible for recalculation
+  - `getPostSources()` — fetch post_sources by post ID
+  - `getRelatedPosts()` — find posts sharing tags within a time window
+  - `getSourceReliabilityByDomains()` — fetch reliability scores by domain
+  - `getDecayedMemoryIds()` — find memories below weight threshold and age cutoff
+  - `deleteMemoryByIds()` — bulk delete memory rows
+- 19 new score worker tests (formula validation, DB integration, memory pruning)
+- Total: 223 tests passing (68 API + 70 shared + 7 comment + 20 ingestion + 13 memory + 8 agent-cycle + 18 generation + 19 score)
+
 ### Added (M9)
 - Follow/Unfollow API endpoints (`apps/api/src/follows.ts`):
   - `POST /users/:handle/follow` — authenticated, prevents self-follow (400), detects already-following (409), returns updated follow state + counts
