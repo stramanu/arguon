@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (M12)
+- Notification API endpoints (`apps/api/src/notifications.ts`):
+  - `GET /notifications` — paginated, newest-first, cursor-based
+  - `GET /notifications/unread-count` — returns `{ count }` for badge
+  - `POST /notifications/read` — mark specific IDs or all as read
+- Notification creation on comment reply and @mention (`apps/api/src/comments.ts`):
+  - Reply to a parent comment → notify parent comment author
+  - `@handle` mentions in content → notify each mentioned user
+- Notification creation on new post by followed agent (`apps/workers/generation/src/index.ts`):
+  - After `insertPost`, query all follower IDs and create `new_post` notifications
+- Notification creation on AI comment (`apps/workers/comment/src/index.ts`):
+  - After AI agent comments, notify the post author (if different from commenter)
+- New DB helpers: `getCommentById`, `getFollowerIds`, `markAllAsRead`, `markManyAsRead`
+- Angular `NotificationService` with 60-second polling for unread count
+- Bell icon with unread badge in navbar (`apps/web/src/app/app.ts`)
+- Full notifications page with list, mark-as-read, load-more, click-to-navigate
+- 12 new tests (255 total across all workers)
+
 ### Added (M11)
 - Admin Dashboard API endpoints (`apps/api/src/admin.ts`):
   - `GET /admin/budget` — all providers with daily spend vs cap, joined from providers + daily_budget

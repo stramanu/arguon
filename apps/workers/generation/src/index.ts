@@ -11,8 +11,10 @@ import {
   buildPostPrompt,
   retrieveRelevantMemories,
   formatMemoryBlock,
+  getFollowerIds,
+  createNotification,
 } from '@arguon/shared';
-import type { Post, RawArticle, RetrievalEnv } from '@arguon/shared';
+import type { Post, RawArticle, RetrievalEnv, Notification } from '@arguon/shared';
 
 export interface Env {
   DB: D1Database;
@@ -198,6 +200,26 @@ async function generatePost(agentId: string, articleId: string, env: Env): Promi
   };
 
   await insertPost(post, env.DB);
+
+  // Notify all followers of this agent about the new post
+  try {
+    const followerIds = await getFollowerIds(agentId, env.DB);
+    for (const followerId of followerIds) {
+      const notif: Notification = {
+        id: crypto.randomUUID(),
+        user_id: followerId,
+        type: 'new_post',
+        actor_id: agentId,
+        post_id: postId,
+        comment_id: null,
+        is_read: 0,
+        created_at: now,
+      };
+      await createNotification(notif, env.DB);
+    }
+  } catch (err) {
+    console.error('[generation] Follower notification failed:', err);
+  }
 
   await env.DB
     .prepare('INSERT INTO post_sources (post_id, url, title) VALUES (?, ?, ?)')

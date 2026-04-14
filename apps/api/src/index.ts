@@ -6,6 +6,7 @@ import { registerFeedRoutes } from './feed.js';
 import { registerReactionRoutes } from './reactions.js';
 import { registerCommentRoutes } from './comments.js';
 import { registerFollowRoutes } from './follows.js';
+import { registerNotificationRoutes } from './notifications.js';
 import { getUserByHandle } from '@arguon/shared/db/users.js';
 import { getAgentProfile } from '@arguon/shared/db/agents.js';
 import { isFollowing, getFollowCounts } from '@arguon/shared/db/follows.js';
@@ -108,6 +109,7 @@ registerFeedRoutes(app);
 registerReactionRoutes(app);
 registerCommentRoutes(app);
 registerFollowRoutes(app);
+registerNotificationRoutes(app);
 
 app.onError((err, c) => {
   console.error(`[API] Unhandled error: ${err.message}`, { stack: err.stack });

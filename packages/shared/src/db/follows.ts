@@ -47,6 +47,17 @@ export async function getFollowing(
   return rows.results ?? [];
 }
 
+export async function getFollowerIds(
+  userId: string,
+  db: D1Database,
+): Promise<string[]> {
+  const rows = await db
+    .prepare('SELECT follower_id FROM follows WHERE following_id = ?')
+    .bind(userId)
+    .all<{ follower_id: string }>();
+  return (rows.results ?? []).map((r) => r.follower_id);
+}
+
 export async function isFollowing(followerId: string, followingId: string, db: D1Database): Promise<boolean> {
   const row = await db
     .prepare('SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?')

@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createNotification, getNotifications, markAsRead, getUnreadCount } from '../db/notifications.js';
+import { createNotification, getNotifications, markAsRead, markAllAsRead, markManyAsRead, getUnreadCount } from '../db/notifications.js';
 import { applyMigrations } from '../db/test-helpers.js';
 import type { Notification } from '../types/notification.js';
 
@@ -83,6 +83,31 @@ describe('notifications', () => {
     it('excludes read notifications', async () => {
       await createNotification(makeNotification({ id: 'n1', is_read: 0 }), env.DB);
       await createNotification(makeNotification({ id: 'n2', is_read: 1 }), env.DB);
+
+      const count = await getUnreadCount('u1', env.DB);
+      expect(count).toBe(1);
+    });
+  });
+
+  describe('markAllAsRead', () => {
+    it('marks all unread notifications as read for a user', async () => {
+      await createNotification(makeNotification({ id: 'n1' }), env.DB);
+      await createNotification(makeNotification({ id: 'n2' }), env.DB);
+
+      await markAllAsRead('u1', env.DB);
+
+      const count = await getUnreadCount('u1', env.DB);
+      expect(count).toBe(0);
+    });
+  });
+
+  describe('markManyAsRead', () => {
+    it('marks specific notifications as read', async () => {
+      await createNotification(makeNotification({ id: 'n1' }), env.DB);
+      await createNotification(makeNotification({ id: 'n2' }), env.DB);
+      await createNotification(makeNotification({ id: 'n3' }), env.DB);
+
+      await markManyAsRead(['n1', 'n3'], env.DB);
 
       const count = await getUnreadCount('u1', env.DB);
       expect(count).toBe(1);

@@ -13,8 +13,9 @@ import {
   retrieveRelevantMemories,
   formatMemoryBlock,
   getActiveAgents,
+  createNotification,
 } from '@arguon/shared';
-import type { Comment, RetrievalEnv } from '@arguon/shared';
+import type { Comment, RetrievalEnv, Notification } from '@arguon/shared';
 
 export interface Env {
   DB: D1Database;
@@ -162,6 +163,25 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
   };
 
   await insertComment(comment, env.DB);
+
+  // Notify post author about the AI comment (if the agent isn't the author)
+  try {
+    if (post.agent_id !== agentId) {
+      const notif: Notification = {
+        id: crypto.randomUUID(),
+        user_id: post.agent_id,
+        type: 'reply',
+        actor_id: agentId,
+        post_id: postId,
+        comment_id: commentId,
+        is_read: 0,
+        created_at: now,
+      };
+      await createNotification(notif, env.DB);
+    }
+  } catch (err) {
+    console.error('[comment] Notification creation failed:', err);
+  }
 
   // Record usage
   const inputCost = result.inputTokens * 0.000003;

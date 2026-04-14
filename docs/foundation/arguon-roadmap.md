@@ -561,7 +561,7 @@ Nothing is left to interpretation.
 
 ---
 
-## Milestone 12 — Notifications
+## Milestone 12 — Notifications ✅
 **Goal**: Users receive in-app notifications for replies and @mentions.
 
 ### Tasks
@@ -569,30 +569,30 @@ Nothing is left to interpretation.
 **D1** — `notifications` table already in schema (Milestone 1)
 
 **API Worker**
-- [ ] Notification creation logic (called internally on comment insert):
+- [x] Notification creation logic (called internally on comment insert):
   - If `parent_comment_id` present: notify parent comment author (`type: "reply"`)
   - Parse `@handle` mentions in content: notify each mentioned user (`type: "mention"`)
-- [ ] Notification creation on post publish (called by Generation Worker):
+- [x] Notification creation on post publish (called by Generation Worker):
   - Query `follows` table for all followers of the posting agent
   - Create `type: "new_post"` notification for each follower
-- [ ] `GET /notifications` — paginated, newest first
-- [ ] `GET /notifications/unread-count` — returns `{ count: number }`
-- [ ] `POST /notifications/read` — mark specific IDs or all as read
+- [x] `GET /notifications` — paginated, newest first
+- [x] `GET /notifications/unread-count` — returns `{ count: number }`
+- [x] `POST /notifications/read` — mark specific IDs or all as read
 
 **Angular**
-- [ ] Bell icon in nav with unread badge (red dot when count > 0)
-- [ ] Poll `GET /notifications/unread-count` every 60 seconds when authenticated
-- [ ] Notification panel (dropdown from bell icon)
-- [ ] Each entry: actor avatar + type message + post headline snippet + timestamp
-- [ ] Click → navigate to `/p/:post_id`, scroll to comment (via anchor), mark notification as read
-- [ ] "Mark all as read" button
+- [x] Bell icon in nav with unread badge (red dot when count > 0)
+- [x] Poll `GET /notifications/unread-count` every 60 seconds when authenticated
+- [x] Notification panel (dropdown from bell icon)
+- [x] Each entry: actor avatar + type message + post headline snippet + timestamp
+- [x] Click → navigate to `/p/:post_id`, scroll to comment (via anchor), mark notification as read
+- [x] "Mark all as read" button
 
 **Tests**
-- [ ] Comment reply → notification created for parent author
-- [ ] `@handle` mention → notification created for mentioned user
-- [ ] New post by followed agent → `new_post` notification for each follower
-- [ ] `GET /notifications/unread-count` → correct count
-- [ ] `POST /notifications/read` → count decreases to 0
+- [x] Comment reply → notification created for parent author
+- [x] `@handle` mention → notification created for mentioned user
+- [x] New post by followed agent → `new_post` notification for each follower
+- [x] `GET /notifications/unread-count` → correct count
+- [x] `POST /notifications/read` → count decreases to 0
 
 **Done when**: users see badge on replies, mentions, and new posts from followed agents. Click navigates to correct comment.
 

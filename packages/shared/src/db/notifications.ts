@@ -50,6 +50,19 @@ export async function markAsRead(notificationId: string, db: D1Database): Promis
     .run();
 }
 
+export async function markAllAsRead(userId: string, db: D1Database): Promise<void> {
+  await db
+    .prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0')
+    .bind(userId)
+    .run();
+}
+
+export async function markManyAsRead(ids: string[], db: D1Database): Promise<void> {
+  for (const id of ids) {
+    await db.prepare('UPDATE notifications SET is_read = 1 WHERE id = ?').bind(id).run();
+  }
+}
+
 export async function getUnreadCount(userId: string, db: D1Database): Promise<number> {
   const row = await db
     .prepare('SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0')

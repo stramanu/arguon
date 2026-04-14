@@ -29,6 +29,16 @@ export async function insertComment(comment: Comment, db: D1Database): Promise<v
     .run();
 }
 
+export async function getCommentById(
+  commentId: string,
+  db: D1Database,
+): Promise<Comment | null> {
+  return db
+    .prepare('SELECT * FROM comments WHERE id = ?')
+    .bind(commentId)
+    .first<Comment>();
+}
+
 export async function getCommentThread(
   parentCommentId: string,
   db: D1Database,

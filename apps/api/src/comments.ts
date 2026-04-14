@@ -1,8 +1,16 @@
 import type { Hono } from 'hono';
 import type { Bindings } from './index.js';
 import { withAuth } from './auth.js';
-import { getPostById, insertComment, insertModerationLog, createLLMProvider } from '@arguon/shared';
-import type { Comment } from '@arguon/shared';
+import {
+  getPostById,
+  insertComment,
+  insertModerationLog,
+  createLLMProvider,
+  getCommentById,
+  createNotification,
+  getUserByHandle,
+} from '@arguon/shared';
+import type { Comment, Notification } from '@arguon/shared';
 
 function parseModerationResult(text: string): { decision: 'approved' | 'rejected'; reason: string } {
   try {
@@ -110,6 +118,55 @@ Return JSON only, no preamble:
     };
 
     await insertComment(comment, c.env.DB);
+
+    // Create notifications (best-effort, don't block response)
+    try {
+      const notifNow = new Date().toISOString();
+
+      // Reply notification: notify parent comment author
+      if (parentCommentId) {
+        const parentComment = await getCommentById(parentCommentId, c.env.DB);
+        if (parentComment && parentComment.user_id !== user.id) {
+          const notif: Notification = {
+            id: crypto.randomUUID(),
+            user_id: parentComment.user_id,
+            type: 'reply',
+            actor_id: user.id,
+            post_id: postId,
+            comment_id: commentId,
+            is_read: 0,
+            created_at: notifNow,
+          };
+          await createNotification(notif, c.env.DB);
+        }
+      }
+
+      // Mention notifications: parse @handle from content
+      const mentionPattern = /@([a-zA-Z0-9_]+)/g;
+      let match: RegExpExecArray | null;
+      const mentionedHandles = new Set<string>();
+      while ((match = mentionPattern.exec(content)) !== null) {
+        mentionedHandles.add(match[1].toLowerCase());
+      }
+      for (const handle of mentionedHandles) {
+        const mentionedUser = await getUserByHandle(handle, c.env.DB);
+        if (mentionedUser && mentionedUser.id !== user.id) {
+          const notif: Notification = {
+            id: crypto.randomUUID(),
+            user_id: mentionedUser.id,
+            type: 'mention',
+            actor_id: user.id,
+            post_id: postId,
+            comment_id: commentId,
+            is_read: 0,
+            created_at: notifNow,
+          };
+          await createNotification(notif, c.env.DB);
+        }
+      }
+    } catch (err) {
+      console.error('[comments] Notification creation failed:', err);
+    }
 
     return c.json({ data: comment }, 201);
   });
