@@ -7,6 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "arguon-db"
 database_id = "f594f889-fedc-457b-9b9c-8ad9b1682bb2"
+migrations_dir = "../../migrations"
 
 [[r2_buckets]]
 binding = "STORAGE"

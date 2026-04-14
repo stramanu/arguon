@@ -1,12 +1,30 @@
-import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, computed, inject, PLATFORM_ID, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import type { Clerk } from '@clerk/clerk-js';
+import { loadClerkJSScript, loadClerkUIScript } from '@clerk/shared/loadClerkJsScript';
+import type { Clerk, ClerkOptions, ClerkUIConstructor } from '@clerk/shared/types';
 import { environment } from '../../environments/environment';
+import { ThemeService } from './theme.service';
+
+const CLERK_DARK_APPEARANCE = { variables: { colorBackground: '#f5faf8', colorNeutral: '#091413', colorPrimary: '#285A48', colorInputBackground: '#ffffff', colorInputText: '#091413', borderRadius: '0.5rem' } };
+const CLERK_LIGHT_APPEARANCE = { variables: { colorBackground: '#f5faf8', colorNeutral: '#091413', colorPrimary: '#285A48', colorInputBackground: '#ffffff', colorInputText: '#091413', borderRadius: '0.5rem' } };
+
+interface BrowserClerk extends Clerk {
+  load: (opts?: Omit<ClerkOptions, 'isSatellite'> & Record<string, unknown>) => Promise<void>;
+  __internal_updateProps: (props: Record<string, unknown>) => void;
+}
+
+declare global {
+  interface Window {
+    Clerk: BrowserClerk;
+    __internal_ClerkUICtor: ClerkUIConstructor;
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
-  private clerk: Clerk | null = null;
+  private readonly themeService = inject(ThemeService);
+  private clerk: BrowserClerk | null = null;
 
   private readonly _isLoaded = signal(false);
   private readonly _userId = signal<string | null>(null);
@@ -19,17 +37,33 @@ export class AuthService {
   readonly userName = this._userName.asReadonly();
   readonly userAvatar = this._userAvatar.asReadonly();
 
+  constructor() {
+    effect(() => {
+      this.clerk?.__internal_updateProps({ appearance: this.clerkAppearance() });
+    });
+  }
+
   async init(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const { Clerk: ClerkConstructor } = await import('@clerk/clerk-js');
-    this.clerk = new ClerkConstructor(environment.clerkPublishableKey);
-    await this.clerk.load();
+    const publishableKey = environment.clerkPublishableKey;
+    const clerkUICtorPromise: Promise<ClerkUIConstructor> = loadClerkUIScript({ publishableKey })
+      .then(() => window.__internal_ClerkUICtor);
+
+    await loadClerkJSScript({ publishableKey });
+    await window.Clerk.load({
+      ui: { ClerkUI: clerkUICtorPromise },
+      appearance: this.clerkAppearance(),
+    });
+    this.clerk = window.Clerk;
 
     this._isLoaded.set(true);
     this.syncUser();
-
     this.clerk.addListener(() => this.syncUser());
+  }
+
+  private clerkAppearance() {
+    return this.themeService.theme() === 'dark' ? CLERK_DARK_APPEARANCE : CLERK_LIGHT_APPEARANCE;
   }
 
   private syncUser(): void {

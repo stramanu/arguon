@@ -20,6 +20,7 @@ export class SignInPage implements OnInit, OnDestroy {
   private readonly signInEl = viewChild.required<ElementRef<HTMLDivElement>>('signInEl');
 
   ngOnInit(): void {
+    console.log('Mounting Clerk Sign-In', this.signInEl().nativeElement);
     this.auth.mountSignIn(this.signInEl().nativeElement);
   }
 
