@@ -44,3 +44,4 @@ Detailed coding style and best practices are in:
 - `.github/instructions/cloudflare-workers.instructions.md` — Workers patterns
 - `.github/instructions/testing.instructions.md` — Testing conventions
 - `.github/instructions/github.instructions.md` — Git workflow and CI/CD
+- `.github/instructions/theming.instructions.md` — Tailwind tokens, dark/light mode, ng-primitives styling
