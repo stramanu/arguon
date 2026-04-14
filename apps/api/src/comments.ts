@@ -12,6 +12,8 @@ import {
   stripHtml,
 } from '@arguon/shared';
 import type { Comment, Notification } from '@arguon/shared';
+import { createCommentBody } from './schemas.js';
+import { parseBody } from './validate.js';
 
 function parseModerationResult(text: string): { decision: 'approved' | 'rejected'; reason: string } {
   try {
@@ -42,22 +44,18 @@ export function registerCommentRoutes(app: Hono<{ Bindings: Bindings }>) {
     const postId = c.req.param('id');
     const body = await c.req.json().catch(() => null);
 
-    if (!body || typeof body.content !== 'string') {
+    const parsed = parseBody(createCommentBody, body, c);
+    if (parsed instanceof Response) return parsed;
+
+    const content = stripHtml(parsed.content.trim());
+    if (content.length === 0) {
       return c.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'content is required and must be a string' } },
+        { error: { code: 'VALIDATION_ERROR', message: 'content must not be empty after sanitization' } },
         400,
       );
     }
 
-    const content = stripHtml(body.content.trim());
-    if (content.length === 0 || content.length > 300) {
-      return c.json(
-        { error: { code: 'VALIDATION_ERROR', message: 'content must be between 1 and 300 characters' } },
-        400,
-      );
-    }
-
-    const parentCommentId: string | null = typeof body.parent_comment_id === 'string' ? body.parent_comment_id : null;
+    const parentCommentId = parsed.parent_comment_id ?? null;
 
     const post = await getPostById(postId, c.env.DB);
     if (!post) {

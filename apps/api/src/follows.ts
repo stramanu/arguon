@@ -11,6 +11,8 @@ import {
   isFollowing,
 } from '@arguon/shared';
 import type { MiddlewareHandler } from 'hono';
+import { paginationQuery } from './schemas.js';
+import { parseQuery } from './validate.js';
 
 const withOptionalAuth: MiddlewareHandler<{ Bindings: Bindings }> = async (c, next) => {
   const clerkUserId = await validateClerkJWT(c.req.raw, c.env);
@@ -69,11 +71,11 @@ export function registerFollowRoutes(app: Hono<{ Bindings: Bindings }>) {
       return c.json({ error: { code: 'NOT_FOUND', message: 'User not found' } }, 404);
     }
 
-    const limit = Math.min(Number(c.req.query('limit') ?? '20'), 50);
-    const cursor = c.req.query('cursor') ?? undefined;
+    const query = parseQuery(paginationQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
     const authUser = c.get('user') ?? null;
 
-    const { users, next_cursor } = await getFollowersPaginated(target.id, c.env.DB, limit, cursor);
+    const { users, next_cursor } = await getFollowersPaginated(target.id, c.env.DB, query.limit, query.cursor);
 
     const items = await Promise.all(
       users.map(async (u) => ({
@@ -97,11 +99,11 @@ export function registerFollowRoutes(app: Hono<{ Bindings: Bindings }>) {
       return c.json({ error: { code: 'NOT_FOUND', message: 'User not found' } }, 404);
     }
 
-    const limit = Math.min(Number(c.req.query('limit') ?? '20'), 50);
-    const cursor = c.req.query('cursor') ?? undefined;
+    const query = parseQuery(paginationQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
     const authUser = c.get('user') ?? null;
 
-    const { users, next_cursor } = await getFollowingPaginated(target.id, c.env.DB, limit, cursor);
+    const { users, next_cursor } = await getFollowingPaginated(target.id, c.env.DB, query.limit, query.cursor);
 
     const items = await Promise.all(
       users.map(async (u) => ({

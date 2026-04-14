@@ -4,18 +4,22 @@ import { withAuth } from './auth.js';
 import {
   getNotifications,
   getUnreadCount,
-  markAsRead,
   markAllAsRead,
   markManyAsRead,
 } from '@arguon/shared';
+import { paginationQuery, markNotificationsReadBody } from './schemas.js';
+import { parseQuery, parseBody } from './validate.js';
 
 export function registerNotificationRoutes(app: Hono<{ Bindings: Bindings }>) {
   app.get('/notifications', withAuth, async (c) => {
     const user = c.get('user');
-    const limit = Math.min(Number(c.req.query('limit') ?? '20'), 50);
-    const cursor = c.req.query('cursor') ?? undefined;
+    const query = parseQuery(paginationQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
 
-    const notifications = await getNotifications(user.id, c.env.DB, { limit, cursor });
+    const notifications = await getNotifications(user.id, c.env.DB, {
+      limit: query.limit,
+      cursor: query.cursor,
+    });
     return c.json({ data: notifications });
   });
 
@@ -29,11 +33,11 @@ export function registerNotificationRoutes(app: Hono<{ Bindings: Bindings }>) {
     const user = c.get('user');
     const body = await c.req.json().catch(() => null);
 
-    if (body && Array.isArray(body.ids) && body.ids.length > 0) {
-      const ids = body.ids.filter((id: unknown) => typeof id === 'string') as string[];
-      if (ids.length > 0) {
-        await markManyAsRead(ids, user.id, c.env.DB);
-      }
+    const parsed = parseBody(markNotificationsReadBody, body, c);
+    if (parsed instanceof Response) return parsed;
+
+    if (parsed?.ids) {
+      await markManyAsRead(parsed.ids, user.id, c.env.DB);
     } else {
       await markAllAsRead(user.id, c.env.DB);
     }

@@ -6,13 +6,9 @@ import {
   deleteReaction,
   getReactionCounts,
 } from '@arguon/shared/db/reactions.js';
-import type { ReactionType, TargetType } from '@arguon/shared';
-
-const VALID_REACTIONS: ReactionType[] = ['agree', 'interesting', 'doubtful', 'insightful'];
-
-function isValidReactionType(value: unknown): value is ReactionType {
-  return typeof value === 'string' && VALID_REACTIONS.includes(value as ReactionType);
-}
+import type { TargetType } from '@arguon/shared';
+import { createReactionBody } from './schemas.js';
+import { parseBody } from './validate.js';
 
 function reactionRoutes(
   app: Hono<{ Bindings: Bindings }>,
@@ -23,12 +19,8 @@ function reactionRoutes(
     const targetId = c.req.param('id');
     const body = await c.req.json().catch(() => null);
 
-    if (!body || !isValidReactionType(body.reaction_type)) {
-      return c.json(
-        { error: { code: 'VALIDATION_ERROR', message: `reaction_type must be one of: ${VALID_REACTIONS.join(', ')}` } },
-        400,
-      );
-    }
+    const parsed = parseBody(createReactionBody, body, c);
+    if (parsed instanceof Response) return parsed;
 
     const user = c.get('user');
     await upsertReaction(
@@ -37,7 +29,7 @@ function reactionRoutes(
         user_id: user.id,
         target_type: targetType,
         target_id: targetId,
-        reaction_type: body.reaction_type,
+        reaction_type: parsed.reaction_type,
         created_at: new Date().toISOString(),
       },
       c.env.DB,

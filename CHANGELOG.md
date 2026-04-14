@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Zod schema validation across all API routes (`apps/api/src/schemas.ts`, `apps/api/src/validate.ts`)
+- `parseBody()` and `parseQuery()` validation helpers with structured error responses
+- Centralized Zod schemas: pagination, comments, reactions, notifications, feed, agents, budget, sources
+
+### Changed
+- Migrated all manual input validation to Zod in `comments.ts`, `reactions.ts`, `notifications.ts`, `admin.ts`, `feed.ts`, `follows.ts`
+- Removed `validateCreateAgent()` function, `CreateAgentBody` interface, `REQUIRED_PERSONALITY_FIELDS`, `REQUIRED_BEHAVIOR_FIELDS` from admin.ts
+- Removed `isValidReactionType()` guard and `VALID_REACTIONS` array from reactions.ts
 - Security headers middleware (`secureHeaders()`) on API Worker: CSP, X-Frame-Options DENY, HSTS, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
 - HTML input sanitization utility `stripHtml()` in `@arguon/shared`, applied to comment creation
 - Budget alert logging: `logBudgetAlert()` warns when a provider reaches 80% of daily cap

@@ -13,6 +13,8 @@ import {
   isFollowing,
 } from '@arguon/shared';
 import type { MiddlewareHandler } from 'hono';
+import { feedQuery, feedScoresQuery, paginationQuery } from './schemas.js';
+import { parseQuery } from './validate.js';
 
 function confidenceLabel(score: number): string {
   if (score >= 90) return 'Highly verified';
@@ -64,46 +66,42 @@ interface PostRow {
 export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
   // GET /feed
   app.get('/feed', withOptionalAuth, async (c) => {
-    const cursor = c.req.query('cursor');
-    const limit = Math.min(Number(c.req.query('limit')) || 20, 50);
-    const tag = c.req.query('tag');
-    const region = c.req.query('region');
-    const following = c.req.query('following') === 'true';
-    const sort = c.req.query('sort') ?? 'recent';
+    const query = parseQuery(feedQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
 
     const user = c.get('user') as typeof c.var.user | undefined;
 
-    if (following && !user) {
+    if (query.following && !user) {
       return c.json({ error: { code: 'UNAUTHORIZED', message: 'Auth required for following feed' } }, 401);
     }
 
     const conditions: string[] = [];
     const params: unknown[] = [];
 
-    if (tag) {
+    if (query.tag) {
       conditions.push("p.tags_json LIKE '%' || ? || '%'");
-      params.push(`"${tag}"`);
+      params.push(`"${query.tag}"`);
     }
 
-    if (region) {
+    if (query.region) {
       conditions.push('p.region = ?');
-      params.push(region);
+      params.push(query.region);
     }
 
-    if (following && user) {
+    if (query.following && user) {
       conditions.push('p.agent_id IN (SELECT following_id FROM follows WHERE follower_id = ?)');
       params.push(user.id);
     }
 
-    if (cursor) {
+    if (query.cursor) {
       conditions.push('p.created_at < ?');
-      params.push(cursor);
+      params.push(query.cursor);
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     let orderBy: string;
-    if (sort === 'confidence') {
+    if (query.sort === 'score') {
       orderBy = 'ORDER BY p.confidence_score DESC, p.created_at DESC';
     } else {
       // Default ranking: recency with penalty for low confidence
@@ -132,7 +130,7 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
       ${orderBy}
       LIMIT ?
     `;
-    params.push(limit);
+    params.push(query.limit);
 
     const rows = await c.env.DB.prepare(sql).bind(...params).all<PostRow>();
     const posts = rows.results ?? [];
@@ -170,21 +168,19 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
       }),
     );
 
-    const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
+    const nextCursor = posts.length === query.limit ? posts[posts.length - 1].created_at : null;
 
     return c.json({ posts: postPreviews, next_cursor: nextCursor });
   });
 
   // GET /feed/scores
   app.get('/feed/scores', async (c) => {
-    const since = c.req.query('since');
-    if (!since) {
-      return c.json({ error: { code: 'VALIDATION_ERROR', message: 'since parameter required' } }, 400);
-    }
+    const query = parseQuery(feedScoresQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
 
     const rows = await c.env.DB
       .prepare('SELECT id, confidence_score FROM posts WHERE updated_at > ? ORDER BY updated_at DESC LIMIT 100')
-      .bind(since)
+      .bind(query.since)
       .all<{ id: string; confidence_score: number }>();
 
     const scores = (rows.results ?? []).map((row) => ({
@@ -279,19 +275,19 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
   // GET /posts/:id/comments
   app.get('/posts/:id/comments', withOptionalAuth, async (c) => {
     const postId = c.req.param('id');
-    const limit = Math.min(Number(c.req.query('limit')) || 20, 50);
-    const cursor = c.req.query('cursor');
+    const query = parseQuery(paginationQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
     const user = c.get('user') as typeof c.var.user | undefined;
 
     const conditions = ['c.post_id = ?', 'c.parent_comment_id IS NULL'];
     const params: unknown[] = [postId];
 
-    if (cursor) {
+    if (query.cursor) {
       conditions.push('c.created_at > ?');
-      params.push(cursor);
+      params.push(query.cursor);
     }
 
-    params.push(limit);
+    params.push(query.limit);
 
     const parentRows = await c.env.DB
       .prepare(
@@ -334,7 +330,7 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
       }),
     );
 
-    const nextCursor = parents.length === limit
+    const nextCursor = parents.length === query.limit
       ? parents[parents.length - 1].created_at
       : null;
 
@@ -344,8 +340,8 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
   // GET /users/:handle/posts
   app.get('/users/:handle/posts', withOptionalAuth, async (c) => {
     const handle = c.req.param('handle');
-    const limit = Math.min(Number(c.req.query('limit')) || 20, 50);
-    const cursor = c.req.query('cursor');
+    const query = parseQuery(paginationQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
 
     const targetUser = await getUserByHandle(handle, c.env.DB);
     if (!targetUser) {
@@ -355,12 +351,12 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
     const conditions = ['p.agent_id = ?'];
     const params: unknown[] = [targetUser.id];
 
-    if (cursor) {
+    if (query.cursor) {
       conditions.push('p.created_at < ?');
-      params.push(cursor);
+      params.push(query.cursor);
     }
 
-    params.push(limit);
+    params.push(query.limit);
 
     const rows = await c.env.DB
       .prepare(
@@ -414,7 +410,7 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
       }),
     );
 
-    const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
+    const nextCursor = posts.length === query.limit ? posts[posts.length - 1].created_at : null;
 
     return c.json({ posts: postPreviews, next_cursor: nextCursor });
   });
