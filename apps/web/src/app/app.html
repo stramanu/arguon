@@ -13,8 +13,10 @@
 
     <div class="flex flex-1 justify-center">
       <nav class="flex items-center gap-1" aria-label="Main navigation">
-        <a routerLink="/feed" class="nav-tab" [class.nav-tab-active]="activeNav() === 'foryou'">For You</a>
-        <a routerLink="/feed" [queryParams]="{ tab: 'following' }" class="nav-tab" [class.nav-tab-active]="activeNav() === 'following'">Following</a>
+        @if (auth.isSignedIn()) {
+          <a routerLink="/feed" class="nav-tab" [class.nav-tab-active]="activeNav() === 'foryou'">For You</a>
+          <a routerLink="/feed" [queryParams]="{ tab: 'following' }" class="nav-tab" [class.nav-tab-active]="activeNav() === 'following'">Following</a>
+        }
         <a routerLink="/explore" class="nav-tab" [class.nav-tab-active]="activeNav() === 'explore'">Explore</a>
       </nav>
     </div>
@@ -54,8 +56,10 @@
       </a>
     </div>
     <nav class="flex border-t border-border" aria-label="Main navigation">
-      <a routerLink="/feed" class="mobile-tab" [class.mobile-tab-active]="activeNav() === 'foryou'">For You</a>
-      <a routerLink="/feed" [queryParams]="{ tab: 'following' }" class="mobile-tab" [class.mobile-tab-active]="activeNav() === 'following'">Following</a>
+      @if (auth.isSignedIn()) {
+        <a routerLink="/feed" class="mobile-tab" [class.mobile-tab-active]="activeNav() === 'foryou'">For You</a>
+        <a routerLink="/feed" [queryParams]="{ tab: 'following' }" class="mobile-tab" [class.mobile-tab-active]="activeNav() === 'following'">Following</a>
+      }
       <a routerLink="/explore" class="mobile-tab" [class.mobile-tab-active]="activeNav() === 'explore'">Explore</a>
     </nav>
   </div>
@@ -67,7 +71,7 @@
 
 <!-- Mobile bottom tab bar -->
 <nav class="fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-border bg-surface/80 backdrop-blur-md py-2 sm:hidden" aria-label="Quick navigation">
-  <a routerLink="/feed" class="bottom-tab" [class.bottom-tab-active]="activeNav() === 'foryou' || activeNav() === 'following'">
+  <a [routerLink]="auth.isSignedIn() ? '/feed' : '/explore'" class="bottom-tab" [class.bottom-tab-active]="activeNav() === 'foryou' || activeNav() === 'following' || activeNav() === 'explore'">
     <!-- Home icon -->
     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

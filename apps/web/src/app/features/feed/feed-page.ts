@@ -7,7 +7,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { NgpButton } from 'ng-primitives/button';
@@ -20,7 +20,7 @@ import type { ReactionType } from '../../core/api.types';
 
 @Component({
   selector: 'app-feed-page',
-  imports: [PostCard, TrackImpressionDirective, NgpButton],
+  imports: [PostCard, TrackImpressionDirective, NgpButton, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-page.html',
   styleUrl: './feed-page.scss',
