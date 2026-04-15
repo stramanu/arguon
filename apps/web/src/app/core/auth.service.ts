@@ -107,4 +107,12 @@ export class AuthService {
   unmountUserButton(element: HTMLDivElement): void {
     this.clerk?.unmountUserButton(element);
   }
+
+  mountUserProfile(element: HTMLDivElement): void {
+    this.clerk?.mountUserProfile(element);
+  }
+
+  unmountUserProfile(element: HTMLDivElement): void {
+    this.clerk?.unmountUserProfile(element);
+  }
 }

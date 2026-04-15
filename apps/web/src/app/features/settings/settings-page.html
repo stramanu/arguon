@@ -1,1 +1,121 @@
-<p>User Settings</p>
+<div class="max-w-[600px] mx-auto">
+  <h1 class="text-2xl font-bold text-text mb-6">Settings</h1>
+
+  <!-- Profile section -->
+  @if (loading()) {
+    <div class="text-center py-8 text-text-muted">Loading profile...</div>
+  } @else if (profile()) {
+    <section class="bg-surface border border-border rounded-xl p-5 mb-4">
+      <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Your Profile</h2>
+      <div class="flex gap-4 items-start">
+        <span ngpAvatar class="w-16 h-16 rounded-full overflow-hidden shrink-0 inline-block">
+          @if (auth.userAvatar()) {
+            <img ngpAvatarImage [src]="auth.userAvatar()!" [alt]="profile()!.name" class="w-full h-full object-cover" />
+          }
+          <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted text-xl font-semibold">
+            {{ profile()!.name.charAt(0).toUpperCase() }}
+          </span>
+        </span>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-lg font-semibold text-text m-0">{{ profile()!.name }}</h3>
+          <span class="text-sm text-text-muted">&#64;{{ profile()!.handle }}</span>
+          <div class="flex gap-4 mt-2">
+            <a [routerLink]="['/u', profile()!.handle, 'followers']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+              <strong class="text-text font-semibold">{{ profile()!.follower_count }}</strong> followers
+            </a>
+            <a [routerLink]="['/u', profile()!.handle, 'following']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+              <strong class="text-text font-semibold">{{ profile()!.following_count }}</strong> following
+            </a>
+          </div>
+          <div class="mt-1 text-xs text-text-faint">Joined {{ joinedDate() }}</div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <a [routerLink]="['/u', profile()!.handle]" ngpButton class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover font-medium">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          View public profile
+        </a>
+      </div>
+    </section>
+
+    <!-- Account section -->
+    <section class="bg-surface border border-border rounded-xl p-5 mb-4">
+      <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Account</h2>
+      <p class="text-sm text-text-secondary mb-3">Manage your email, password, and connected accounts.</p>
+      <button
+        ngpButton
+        (click)="toggleClerkProfile()"
+        class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors duration-150"
+        [class]="showClerkProfile() ? 'bg-surface text-text-muted border-border' : 'bg-primary text-white border-primary hover:bg-primary-hover'"
+      >
+        {{ showClerkProfile() ? 'Hide account settings' : 'Manage account' }}
+      </button>
+      @if (showClerkProfile()) {
+        <div #clerkProfileEl class="mt-4"></div>
+      }
+    </section>
+
+    <!-- Preferences section -->
+    <section class="bg-surface border border-border rounded-xl p-5 mb-4">
+      <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Preferences</h2>
+
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <span class="text-sm font-medium text-text">Theme</span>
+          <p class="text-xs text-text-muted mt-0.5">Switch between light and dark mode</p>
+        </div>
+        <app-theme-toggle />
+      </div>
+
+      <div class="border-t border-border-light my-2"></div>
+
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <span class="text-sm font-medium text-text">Cookie Preferences</span>
+          <p class="text-xs text-text-muted mt-0.5">
+            @switch (cookieConsent.consent()) {
+              @case ('all') { All cookies accepted }
+              @case ('essential') { Essential cookies only }
+              @default { Not yet configured }
+            }
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            ngpButton
+            (click)="acceptAllCookies()"
+            class="px-3 py-1.5 text-xs rounded-lg border transition-colors duration-150"
+            [class]="cookieConsent.consent() === 'all' ? 'bg-primary text-white border-primary' : 'bg-surface text-text-secondary border-border hover:border-primary'"
+          >
+            All
+          </button>
+          <button
+            ngpButton
+            (click)="acceptEssentialCookies()"
+            class="px-3 py-1.5 text-xs rounded-lg border transition-colors duration-150"
+            [class]="cookieConsent.consent() === 'essential' ? 'bg-primary text-white border-primary' : 'bg-surface text-text-secondary border-border hover:border-primary'"
+          >
+            Essential only
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Links section -->
+    <section class="bg-surface border border-border rounded-xl p-5 mb-4">
+      <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Legal</h2>
+      <div class="flex flex-wrap gap-x-4 gap-y-1">
+        <a routerLink="/privacy" class="text-sm text-text-muted hover:text-primary">Privacy Policy</a>
+        <a routerLink="/terms" class="text-sm text-text-muted hover:text-primary">Terms of Service</a>
+        <a routerLink="/cookies" class="text-sm text-text-muted hover:text-primary">Cookie Policy</a>
+        <a routerLink="/about" class="text-sm text-text-muted hover:text-primary">About Arguon</a>
+      </div>
+    </section>
+  } @else {
+    <div class="text-center py-8 text-error" role="alert">Could not load your profile.</div>
+  }
+</div>
