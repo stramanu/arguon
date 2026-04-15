@@ -61,40 +61,47 @@
     }
 
     <div class="flex gap-5 py-4 border-y border-border text-[0.9375rem] text-text-secondary">
-      <button ngpButton [class.text-primary]="isReactionActive('agree')" (click)="toggleReaction('agree')" type="button" class="data-[press]:scale-95">👍 {{ p.reaction_counts.agree }}</button>
-      <button ngpButton [class.text-primary]="isReactionActive('interesting')" (click)="toggleReaction('interesting')" type="button" class="data-[press]:scale-95">💡 {{ p.reaction_counts.interesting }}</button>
-      <button ngpButton [class.text-primary]="isReactionActive('doubtful')" (click)="toggleReaction('doubtful')" type="button" class="data-[press]:scale-95">🤔 {{ p.reaction_counts.doubtful }}</button>
-      <button ngpButton [class.text-primary]="isReactionActive('insightful')" (click)="toggleReaction('insightful')" type="button" class="data-[press]:scale-95">🔍 {{ p.reaction_counts.insightful }}</button>
+      <button ngpButton [class.text-primary]="isReactionActive('agree')" [class.opacity-50]="!auth.isSignedIn()" [class.cursor-not-allowed]="!auth.isSignedIn()" (click)="toggleReaction('agree')" type="button" class="data-[press]:scale-95">👍 {{ p.reaction_counts.agree }}</button>
+      <button ngpButton [class.text-primary]="isReactionActive('interesting')" [class.opacity-50]="!auth.isSignedIn()" [class.cursor-not-allowed]="!auth.isSignedIn()" (click)="toggleReaction('interesting')" type="button" class="data-[press]:scale-95">💡 {{ p.reaction_counts.interesting }}</button>
+      <button ngpButton [class.text-primary]="isReactionActive('doubtful')" [class.opacity-50]="!auth.isSignedIn()" [class.cursor-not-allowed]="!auth.isSignedIn()" (click)="toggleReaction('doubtful')" type="button" class="data-[press]:scale-95">🤔 {{ p.reaction_counts.doubtful }}</button>
+      <button ngpButton [class.text-primary]="isReactionActive('insightful')" [class.opacity-50]="!auth.isSignedIn()" [class.cursor-not-allowed]="!auth.isSignedIn()" (click)="toggleReaction('insightful')" type="button" class="data-[press]:scale-95">🔍 {{ p.reaction_counts.insightful }}</button>
     </div>
   </article>
 
   <section class="max-w-[720px] mx-auto mt-6">
     <h2 class="text-lg font-semibold mb-4">Comments ({{ p.comment_count }})</h2>
 
-    <div class="mb-4">
-      @if (commentError()) {
-        <div class="text-sm text-error bg-error-bg border border-error-border rounded-md p-2 mb-2" role="alert">{{ commentError() }}</div>
-      }
-      <textarea
-        ngpTextarea
-        class="w-full px-3 py-2 border border-border rounded-lg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 data-[focus]:border-primary"
-        placeholder="Write a comment..."
-        [ngModel]="commentText()"
-        (ngModelChange)="commentText.set($event)"
-        [maxlength]="300"
-        rows="3"
-      ></textarea>
-      <div class="flex items-center justify-end gap-3 mt-2">
-        <span class="text-xs" [class.text-error]="charCount() >= 280" [class.text-text-faint]="charCount() < 280">{{ charCount() }}/300</span>
-        <button
-          ngpButton
-          class="px-4 py-1.5 bg-primary text-white text-sm font-medium rounded-md data-[hover]:bg-primary-hover data-[disabled]:opacity-60"
-          [disabled]="charCount() === 0 || charCount() > 300 || commentSubmitting()"
-          (click)="submitComment()"
-          type="button"
-        >{{ commentSubmitting() ? 'Posting...' : 'Post comment' }}</button>
+    @if (auth.isSignedIn()) {
+      <div class="mb-4">
+        @if (commentError()) {
+          <div class="text-sm text-error bg-error-bg border border-error-border rounded-md p-2 mb-2" role="alert">{{ commentError() }}</div>
+        }
+        <textarea
+          ngpTextarea
+          class="w-full px-3 py-2 border border-border rounded-lg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary/30 data-[focus]:border-primary"
+          placeholder="Write a comment..."
+          [ngModel]="commentText()"
+          (ngModelChange)="commentText.set($event)"
+          [maxlength]="300"
+          rows="3"
+        ></textarea>
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <span class="text-xs" [class.text-error]="charCount() >= 280" [class.text-text-faint]="charCount() < 280">{{ charCount() }}/300</span>
+          <button
+            ngpButton
+            class="px-4 py-1.5 bg-primary text-white text-sm font-medium rounded-md data-[hover]:bg-primary-hover data-[disabled]:opacity-60"
+            [disabled]="charCount() === 0 || charCount() > 300 || commentSubmitting()"
+            (click)="submitComment()"
+            type="button"
+          >{{ commentSubmitting() ? 'Posting...' : 'Post comment' }}</button>
+        </div>
       </div>
-    </div>
+    } @else {
+      <div class="mb-4 py-4 text-center border border-border rounded-lg bg-surface-alt">
+        <p class="text-sm text-text-secondary mb-2">Sign in to join the conversation</p>
+        <a routerLink="/sign-in" class="text-sm text-primary font-medium hover:underline">Sign in</a>
+      </div>
+    }
 
     @for (comment of comments(); track comment.id) {
       <div class="py-3 border-b border-border-light">
@@ -107,7 +114,9 @@
         </div>
         <p class="text-[0.9375rem] leading-normal text-text-secondary">{{ comment.content }}</p>
         <div class="mt-1">
-          <button ngpButton class="text-sm text-text-muted hover:text-text" (click)="startReply(comment.id)" type="button">Reply</button>
+          @if (auth.isSignedIn()) {
+            <button ngpButton class="text-sm text-text-muted hover:text-text" (click)="startReply(comment.id)" type="button">Reply</button>
+          }
         </div>
 
         @if (replyingTo() === comment.id) {

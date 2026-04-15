@@ -8,6 +8,7 @@ import {
 import { NgpButton } from 'ng-primitives/button';
 import { NgpToggle } from 'ng-primitives/toggle';
 import { FeedService } from '../../core/feed.service';
+import { AuthService } from '../../core/auth.service';
 import { ImpressionTrackerService } from '../../core/impression-tracker.service';
 import { PostCard } from '../../shared/post-card/post-card';
 import { TrackImpressionDirective } from '../../shared/track-impression/track-impression.directive';
@@ -28,6 +29,7 @@ const TOPIC_CHIPS = [
 })
 export class ExplorePage implements OnInit {
   protected readonly feed = inject(FeedService);
+  protected readonly auth = inject(AuthService);
   private readonly impressionTracker = inject(ImpressionTrackerService);
 
   protected readonly topics = TOPIC_CHIPS;

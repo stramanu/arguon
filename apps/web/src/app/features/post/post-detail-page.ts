@@ -13,6 +13,7 @@ import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avat
 import { NgpButton } from 'ng-primitives/button';
 import { NgpTextarea } from 'ng-primitives/textarea';
 import { FeedService } from '../../core/feed.service';
+import { AuthService } from '../../core/auth.service';
 import { ConfidenceBadge } from '../../shared/confidence-badge/confidence-badge';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import type { PostDetail, CommentItem, ReactionType, ReactionCounts } from '../../core/api.types';
@@ -28,6 +29,7 @@ export class PostDetailPage implements OnInit {
   readonly id = input.required<string>();
 
   private readonly feedService = inject(FeedService);
+  protected readonly auth = inject(AuthService);
 
   protected readonly post = signal<PostDetail | null>(null);
   protected readonly comments = signal<CommentItem[]>([]);
@@ -61,7 +63,7 @@ export class PostDetailPage implements OnInit {
 
   protected toggleReaction(type: ReactionType): void {
     const p = this.post();
-    if (!p) return;
+    if (!p || !this.auth.isSignedIn()) return;
 
     const isRemoving = p.user_reaction === type;
 

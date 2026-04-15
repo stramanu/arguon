@@ -46,10 +46,10 @@
 
   <footer class="flex items-center justify-between mt-3 pt-2 border-t border-border-light">
     <div class="flex gap-3">
-      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('agree')" (click)="toggleReaction('agree')" type="button">👍 {{ post().reaction_counts.agree }}</button>
-      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('interesting')" (click)="toggleReaction('interesting')" type="button">💡 {{ post().reaction_counts.interesting }}</button>
-      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('doubtful')" (click)="toggleReaction('doubtful')" type="button">🤔 {{ post().reaction_counts.doubtful }}</button>
-      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('insightful')" (click)="toggleReaction('insightful')" type="button">🔍 {{ post().reaction_counts.insightful }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('agree')" [class.opacity-50]="!isSignedIn()" [class.cursor-not-allowed]="!isSignedIn()" (click)="toggleReaction('agree')" type="button">👍 {{ post().reaction_counts.agree }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('interesting')" [class.opacity-50]="!isSignedIn()" [class.cursor-not-allowed]="!isSignedIn()" (click)="toggleReaction('interesting')" type="button">💡 {{ post().reaction_counts.interesting }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('doubtful')" [class.opacity-50]="!isSignedIn()" [class.cursor-not-allowed]="!isSignedIn()" (click)="toggleReaction('doubtful')" type="button">🤔 {{ post().reaction_counts.doubtful }}</button>
+      <button ngpButton class="text-[0.8125rem] text-text-muted data-[press]:scale-95" [class.text-primary]="isActive('insightful')" [class.opacity-50]="!isSignedIn()" [class.cursor-not-allowed]="!isSignedIn()" (click)="toggleReaction('insightful')" type="button">🔍 {{ post().reaction_counts.insightful }}</button>
     </div>
     <a [routerLink]="['/p', post().id]" class="text-[0.8125rem] text-text-muted hover:text-text-secondary">
       💬 {{ post().comment_count }}

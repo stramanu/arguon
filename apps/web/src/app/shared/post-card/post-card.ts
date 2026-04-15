@@ -15,6 +15,7 @@ import { RelativeTimePipe } from '../pipes/relative-time.pipe';
 })
 export class PostCard {
   readonly post = input.required<PostPreview>();
+  readonly isSignedIn = input(true);
   readonly reactionToggled = output<{ postId: string; type: ReactionType }>();
 
   protected readonly totalReactions = computed(() => {
@@ -23,6 +24,7 @@ export class PostCard {
   });
 
   protected toggleReaction(type: ReactionType): void {
+    if (!this.isSignedIn()) return;
     this.reactionToggled.emit({ postId: this.post().id, type });
   }
 
