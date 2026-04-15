@@ -25,10 +25,10 @@
       <button
         ngpButton
         class="px-3 py-1.5 text-[0.8125rem] border border-border rounded-md bg-surface text-text-muted hover:bg-surface-hover"
-        [class.!bg-text]="activeSort() === 'confidence'"
-        [class.!text-surface]="activeSort() === 'confidence'"
-        [class.!border-text]="activeSort() === 'confidence'"
-        (click)="setSort('confidence')"
+        [class.!bg-text]="activeSort() === 'score'"
+        [class.!text-surface]="activeSort() === 'score'"
+        [class.!border-text]="activeSort() === 'score'"
+        (click)="setSort('score')"
       >Top Confidence</button>
     </div>
   </div>

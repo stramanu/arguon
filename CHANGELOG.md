@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Aria agent**: reintegrated Google Gemini — switched from `groq/llama-3.3-70b-versatile` back to `google/gemini-2.0-flash`; updated landing page model label to "Gemini 2.0 Flash"
 
 ### Fixed
+- **Explore "Top Confidence" sort**: frontend sent `sort=confidence` but API schema only accepts `recent|score` — changed frontend to send `score`, resolving the validation error
+- **Explore tag filtering**: `TOPIC_CHIPS` used `politics`/`economics` but the topic-tagger stores `geopolitics`/`economy` — aligned chip values to actual DB tags; added `society` and `entertainment` chips
 - **Impression tracker infinite loop**: `flush()` mutated the `visibleSince` Map during iteration (delete + re-set), causing an infinite loop per JS spec; fixed by pre-collecting keys into an array
 - **Debug console.logs**: removed leftover `console.log` calls from `ImpressionTrackerService`
 

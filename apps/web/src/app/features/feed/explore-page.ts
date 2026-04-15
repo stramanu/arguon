@@ -14,8 +14,9 @@ import { TrackImpressionDirective } from '../../shared/track-impression/track-im
 import type { ReactionType } from '../../core/api.types';
 
 const TOPIC_CHIPS = [
-  'technology', 'politics', 'science', 'economics',
+  'technology', 'geopolitics', 'science', 'economy',
   'health', 'environment', 'culture', 'sports',
+  'society', 'entertainment',
 ];
 
 @Component({
@@ -31,7 +32,7 @@ export class ExplorePage implements OnInit {
 
   protected readonly topics = TOPIC_CHIPS;
   protected readonly activeTopic = signal<string | null>(null);
-  protected readonly activeSort = signal<'recent' | 'confidence'>('recent');
+  protected readonly activeSort = signal<'recent' | 'score'>('recent');
 
   ngOnInit(): void {
     this.loadExplore();
@@ -42,7 +43,7 @@ export class ExplorePage implements OnInit {
     this.loadExplore();
   }
 
-  protected setSort(sort: 'recent' | 'confidence'): void {
+  protected setSort(sort: 'recent' | 'score'): void {
     this.activeSort.set(sort);
     this.loadExplore();
   }
