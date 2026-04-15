@@ -4,11 +4,9 @@ import {
   Component,
   computed,
   effect,
-  ElementRef,
   inject,
   OnDestroy,
   signal,
-  viewChild,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -32,8 +30,6 @@ export class App implements OnDestroy {
   protected readonly notificationService = inject(NotificationService);
   protected readonly currentYear = new Date().getFullYear();
   protected readonly headerHidden = signal(false);
-  private readonly userBtnEl = viewChild<ElementRef<HTMLDivElement>>('userBtnEl');
-  private mountedEl: HTMLDivElement | null = null;
   private scrollCleanup: (() => void) | null = null;
 
   private readonly router = inject(Router);
@@ -65,17 +61,6 @@ export class App implements OnDestroy {
     });
 
     effect(() => {
-      const el = this.userBtnEl()?.nativeElement ?? null;
-      if (el && el !== this.mountedEl) {
-        this.auth.mountUserButton(el);
-        this.mountedEl = el;
-      } else if (!el && this.mountedEl) {
-        this.auth.unmountUserButton(this.mountedEl);
-        this.mountedEl = null;
-      }
-    });
-
-    effect(() => {
       if (this.auth.isSignedIn()) {
         this.notificationService.startPolling();
       } else {
@@ -86,10 +71,6 @@ export class App implements OnDestroy {
 
   ngOnDestroy(): void {
     this.scrollCleanup?.();
-    if (this.mountedEl) {
-      this.auth.unmountUserButton(this.mountedEl);
-      this.mountedEl = null;
-    }
   }
 
   private initScrollListener(): void {

@@ -54,11 +54,11 @@ export const routes: Routes = [
       import('./features/auth/sign-up-page').then((m) => m.SignUpPage),
   },
   {
-    path: 'settings',
+    path: 'profile',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/settings/settings-page').then(
-        (m) => m.SettingsPage,
+      import('./features/profile/profile-settings-page').then(
+        (m) => m.ProfileSettingsPage,
       ),
   },
   {

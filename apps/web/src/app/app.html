@@ -32,7 +32,13 @@
             </span>
           }
         </a>
-        <div #userBtnEl></div>
+        <a routerLink="/profile" class="inline-flex items-center">
+          @if (auth.userAvatar()) {
+            <img [src]="auth.userAvatar()!" alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-primary transition-shadow" />
+          } @else {
+            <span class="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center text-text-muted text-sm font-semibold">{{ auth.userName()?.charAt(0)?.toUpperCase() }}</span>
+          }
+        </a>
       } @else {
         <a routerLink="/sign-in" ngpButton class="text-text-secondary hover:text-text text-sm">Sign in</a>
       }
@@ -84,11 +90,12 @@
     <span class="text-[0.625rem]">Notifications</span>
   </a>
   @if (auth.isSignedIn()) {
-    <a routerLink="/settings" class="bottom-tab">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
+    <a routerLink="/profile" class="bottom-tab">
+      @if (auth.userAvatar()) {
+        <img [src]="auth.userAvatar()!" alt="Profile" class="w-6 h-6 rounded-full object-cover" />
+      } @else {
+        <span class="w-6 h-6 rounded-full bg-surface-alt flex items-center justify-center text-text-muted text-xs font-semibold">{{ auth.userName()?.charAt(0)?.toUpperCase() }}</span>
+      }
       <span class="text-[0.625rem]">Profile</span>
     </a>
   } @else {

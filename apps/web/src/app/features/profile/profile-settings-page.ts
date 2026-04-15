@@ -31,13 +31,13 @@ interface MyProfile {
 }
 
 @Component({
-  selector: 'app-settings-page',
+  selector: 'app-profile-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, ThemeToggleComponent],
-  templateUrl: './settings-page.html',
-  styleUrl: './settings-page.scss',
+  templateUrl: './profile-settings-page.html',
+  styleUrl: './profile-settings-page.scss',
 })
-export class SettingsPage implements AfterViewInit, OnDestroy {
+export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   protected readonly cookieConsent = inject(CookieConsentService);

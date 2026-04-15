@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Settings / profile page**: new `/settings` page showing user profile (avatar, name, handle, follower/following counts, join date), Clerk account management, theme toggle, cookie preference controls, and legal links
+- **Profile page refactor**: renamed `/settings` route → `/profile`; moved component files into `features/profile/` directory; page title now "Profile"
+- **Avatar navigation**: replaced Clerk UserButton in desktop header and generic SVG icon in mobile bottom bar with the user's Clerk avatar linking to `/profile`
 - **Cookie consent system**: GDPR-compliant cookie banner + `/cookies` policy page; `CookieConsentService` stores consent level (`all`|`essential`) in localStorage; impression tracking gated behind analytics consent
 - **Splash screen**: lightweight inline loader in `index.html` — Arguon SVG logo centered with a gentle pulse animation, themed for both light and dark mode, appears instantly before Angular bootstraps and fades out once the app renders
 - **Early theme script**: inline `<script>` in `<head>` resolves dark/light theme from `localStorage` / `prefers-color-scheme` before first paint, preventing flash of wrong theme
