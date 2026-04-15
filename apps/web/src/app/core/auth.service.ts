@@ -73,6 +73,27 @@ export class AuthService {
       user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username : null,
     );
     this._userAvatar.set(user?.imageUrl ?? null);
+
+    if (user) {
+      this.syncToBackend(
+        `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username || '',
+        user.imageUrl ?? '',
+      );
+    }
+  }
+
+  private syncToBackend(name: string, avatarUrl: string): void {
+    this.getToken().then((token) => {
+      if (!token) return;
+      fetch(`${environment.apiUrl}/auth/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, avatar_url: avatarUrl }),
+      }).catch(() => { /* best-effort sync */ });
+    });
   }
 
   async getToken(): Promise<string | null> {

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
-import { withAuth, validateClerkJWT, getOrCreateLocalUser } from './auth.js';
+import { withAuth, validateClerkJWT, getOrCreateLocalUser, registerAuthRoutes } from './auth.js';
 import { registerAdminRoutes } from './admin.js';
 import { registerFeedRoutes } from './feed.js';
 import { registerReactionRoutes } from './reactions.js';
@@ -134,6 +134,7 @@ app.get('/users/:handle', async (c) => {
   });
 });
 
+registerAuthRoutes(app);
 registerAdminRoutes(app);
 registerFeedRoutes(app);
 registerReactionRoutes(app);

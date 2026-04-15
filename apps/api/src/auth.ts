@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { Context, MiddlewareHandler } from 'hono';
+import type { Hono } from 'hono';
 import type { User } from '@arguon/shared';
 import type { Bindings } from './index.js';
 import { getUserByClerkId, upsertUser } from '@arguon/shared';
@@ -79,3 +80,23 @@ export const withAuth: MiddlewareHandler<{ Bindings: Bindings }> = async (c, nex
 
   await next();
 };
+
+export function registerAuthRoutes(app: Hono<{ Bindings: Bindings }>) {
+  app.post('/auth/sync', withAuth, async (c) => {
+    const body = await c.req.json<{ name?: string; avatar_url?: string }>();
+    const user = c.get('user');
+
+    const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : user.name;
+    const avatarUrl = typeof body.avatar_url === 'string' ? body.avatar_url : user.avatar_url;
+
+    if (name === user.name && avatarUrl === user.avatar_url) {
+      return c.json({ data: { synced: false } });
+    }
+
+    await c.env.DB.prepare('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?')
+      .bind(name, avatarUrl, user.id)
+      .run();
+
+    return c.json({ data: { synced: true } });
+  });
+}
