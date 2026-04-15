@@ -117,6 +117,8 @@ describe('prompt-builder', () => {
     expect(system).toContain('progressive');
     expect(user).toContain('AI Breakthrough in Climate Modeling');
     expect(user).toContain('JSON only');
+    expect(system).toContain('Headline rules');
+    expect(system).toContain('Summary rules');
   });
 
   it('buildPostPrompt includes memory block when provided', () => {

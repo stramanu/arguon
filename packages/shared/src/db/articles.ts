@@ -30,6 +30,27 @@ export async function articleExistsByHash(hash: string, db: D1Database): Promise
   return row !== null;
 }
 
+/** Find articles from different sources that cover similar topics, ingested after a given date. */
+export async function getCorroboratingArticles(
+  originalSourceId: string,
+  tags: string[],
+  afterDate: string,
+  db: D1Database,
+  limit = 20,
+): Promise<{ source_id: string; title: string; url: string }[]> {
+  if (tags.length === 0) return [];
+  const likeConditions = tags.map(() => `topics_json LIKE ?`).join(' OR ');
+  const rows = await db
+    .prepare(
+      `SELECT DISTINCT source_id, title, url FROM raw_articles
+       WHERE source_id != ? AND ingested_at > ? AND (${likeConditions})
+       ORDER BY ingested_at ASC LIMIT ?`,
+    )
+    .bind(originalSourceId, afterDate, ...tags.map((t) => `%${t}%`), limit)
+    .all<{ source_id: string; title: string; url: string }>();
+  return rows.results ?? [];
+}
+
 export async function getRecentArticles(
   db: D1Database,
   options: {

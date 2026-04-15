@@ -10,6 +10,7 @@ import {
   getPostSources,
   getRelatedPosts,
   getSourceReliabilityByDomains,
+  getCorroboratingArticles,
   getDecayedMemoryIds,
   deleteMemoryByIds,
   updateConfidenceScore,
@@ -71,24 +72,52 @@ describe('agreementFactor', () => {
 });
 
 describe('computeConfidenceScore', () => {
-  it('source_count=5, reliability=0.9, agreement=1.0, convergence=0 → score=90', () => {
+  it('high reliability + multiple sources → high score', () => {
     const score = computeConfidenceScore({
       uniqueSourceDomains: 5,
       reliabilityAvg: 0.9,
       agreementFactor: 1.0,
       convergence: 0,
+      corroboratingSourceCount: 0,
     });
     expect(score).toBe(95);
   });
 
-  it('source_count=1, reliability=0.5, agreement=0.4, convergence=0 → score=66', () => {
+  it('single source, low reliability → moderate base score', () => {
     const score = computeConfidenceScore({
       uniqueSourceDomains: 1,
       reliabilityAvg: 0.5,
       agreementFactor: 0.4,
       convergence: 0,
+      corroboratingSourceCount: 0,
     });
     expect(score).toBe(66);
+  });
+
+  it('corroborating sources add bonus up to +15', () => {
+    const base = computeConfidenceScore({
+      uniqueSourceDomains: 1,
+      reliabilityAvg: 0.85,
+      agreementFactor: 0.4,
+      convergence: 0,
+      corroboratingSourceCount: 0,
+    });
+    const boosted = computeConfidenceScore({
+      uniqueSourceDomains: 1,
+      reliabilityAvg: 0.85,
+      agreementFactor: 0.4,
+      convergence: 0,
+      corroboratingSourceCount: 3,
+    });
+    expect(boosted - base).toBe(9);
+    const capped = computeConfidenceScore({
+      uniqueSourceDomains: 1,
+      reliabilityAvg: 0.85,
+      agreementFactor: 0.4,
+      convergence: 0,
+      corroboratingSourceCount: 10,
+    });
+    expect(capped - base).toBe(15);
   });
 
   it('caps at 100', () => {
@@ -97,6 +126,7 @@ describe('computeConfidenceScore', () => {
       reliabilityAvg: 1.0,
       agreementFactor: 1.0,
       convergence: 0.1,
+      corroboratingSourceCount: 10,
     });
     expect(score).toBeLessThanOrEqual(100);
   });
@@ -107,6 +137,7 @@ describe('computeConfidenceScore', () => {
       reliabilityAvg: 0,
       agreementFactor: 0,
       convergence: 0,
+      corroboratingSourceCount: 0,
     });
     expect(score).toBeGreaterThanOrEqual(0);
   });
@@ -171,6 +202,64 @@ describe('getSourceReliabilityByDomains', () => {
   });
 });
 
+describe('getCorroboratingArticles', () => {
+  it('returns articles from different sources on same topics', async () => {
+    await env.DB
+      .prepare(
+        `INSERT OR IGNORE INTO news_sources (id, name, url, type, language, reliability_score, is_active)
+         VALUES ('cab-s1', 'Src A', 'https://srca.com/rss', 'rss', 'en', 0.8, 1)`,
+      )
+      .run();
+    await env.DB
+      .prepare(
+        `INSERT OR IGNORE INTO news_sources (id, name, url, type, language, reliability_score, is_active)
+         VALUES ('cab-s2', 'Src B', 'https://srcb.com/rss', 'rss', 'en', 0.9, 1)`,
+      )
+      .run();
+
+    // Original article (source A)
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('cab-a1', 'cab-s1', 'https://srca.com/1', 'Story A', '', 'ch1', '["tech"]', 'en', ?)`,
+      )
+      .bind(HOUR_AGO)
+      .run();
+
+    // Later article from source B covering same topic
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('cab-a2', 'cab-s2', 'https://srcb.com/1', 'Story B', '', 'ch2', '["tech"]', 'en', ?)`,
+      )
+      .bind(NOW)
+      .run();
+
+    // Another article from source A (same source = should be excluded)
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('cab-a3', 'cab-s1', 'https://srca.com/2', 'Story C', '', 'ch3', '["tech"]', 'en', ?)`,
+      )
+      .bind(NOW)
+      .run();
+
+    const results = await getCorroboratingArticles('cab-s1', ['tech'], HOUR_AGO, env.DB);
+    expect(results.length).toBe(1);
+    expect(results[0].source_id).toBe('cab-s2');
+  });
+
+  it('returns empty when no matching topics', async () => {
+    const results = await getCorroboratingArticles('cab-s1', ['nonexistent'], HOUR_AGO, env.DB);
+    expect(results).toEqual([]);
+  });
+
+  it('returns empty for empty tags', async () => {
+    const results = await getCorroboratingArticles('any', [], HOUR_AGO, env.DB);
+    expect(results).toEqual([]);
+  });
+});
+
 describe('recomputeScores', () => {
   it('does not update score when change is <= 1 point', async () => {
     await seedAgent('nochange-a1', 'nochange-agent1');
@@ -218,6 +307,75 @@ describe('recomputeScores', () => {
 
     const post = await env.DB.prepare('SELECT confidence_score FROM posts WHERE id = ?').bind('rescore-p1').first<{ confidence_score: number }>();
     expect(post!.confidence_score).toBeGreaterThan(10);
+  });
+
+  it('boosts score when corroborating articles from other sources exist', async () => {
+    await seedAgent('corr-a1', 'corr-agent1');
+
+    // Create a source and article
+    await env.DB
+      .prepare(
+        `INSERT OR IGNORE INTO news_sources (id, name, url, type, language, reliability_score, is_active)
+         VALUES ('corr-src1', 'BBC', 'https://bbc.com/rss', 'rss', 'en', 0.9, 1)`,
+      )
+      .run();
+    await env.DB
+      .prepare(
+        `INSERT OR IGNORE INTO news_sources (id, name, url, type, language, reliability_score, is_active)
+         VALUES ('corr-src2', 'NYT', 'https://nyt.com/rss', 'rss', 'en', 0.9, 1)`,
+      )
+      .run();
+    await env.DB
+      .prepare(
+        `INSERT OR IGNORE INTO news_sources (id, name, url, type, language, reliability_score, is_active)
+         VALUES ('corr-src3', 'Guardian', 'https://guardian.com/rss', 'rss', 'en', 0.85, 1)`,
+      )
+      .run();
+
+    // Original article (the one linked to the post)
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('corr-a1', 'corr-src1', 'https://bbc.com/story', 'Climate Summit Results', '', 'h1', '["environment","climate"]', 'en', ?)`,
+      )
+      .bind(HOUR_AGO)
+      .run();
+
+    // Post based on that article
+    await env.DB
+      .prepare(
+        `INSERT INTO posts (id, agent_id, article_id, headline, summary, confidence_score, tags_json, created_at, updated_at)
+         VALUES ('corr-p1', 'corr-a1', 'corr-a1', 'Climate Summit', 'Summary', 83, '["environment","climate"]', ?, ?)`,
+      )
+      .bind(HOUR_AGO, HOUR_AGO)
+      .run();
+
+    await env.DB
+      .prepare('INSERT INTO post_sources (post_id, url, title) VALUES (?, ?, ?)')
+      .bind('corr-p1', 'https://bbc.com/story', 'Climate Summit Results')
+      .run();
+
+    // Later articles from OTHER sources on the same topic
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('corr-a2', 'corr-src2', 'https://nyt.com/story', 'Climate Summit Recap', '', 'h2', '["environment"]', 'en', ?)`,
+      )
+      .bind(NOW)
+      .run();
+    await env.DB
+      .prepare(
+        `INSERT INTO raw_articles (id, source_id, url, title, content, hash, topics_json, language, ingested_at)
+         VALUES ('corr-a3', 'corr-src3', 'https://guardian.com/story', 'World Climate Talks', '', 'h3', '["climate"]', 'en', ?)`,
+      )
+      .bind(NOW)
+      .run();
+
+    await recomputeScores(env.DB);
+
+    const post = await env.DB.prepare('SELECT confidence_score FROM posts WHERE id = ?').bind('corr-p1').first<{ confidence_score: number }>();
+    // Should be higher than initial 83 thanks to 2 corroborating sources (+6 points)
+    expect(post!.confidence_score).toBeGreaterThan(83);
   });
 });
 

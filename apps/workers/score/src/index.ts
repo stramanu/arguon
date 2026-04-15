@@ -4,6 +4,7 @@ import {
   getRelatedPosts,
   updateConfidenceScore,
   getSourceReliabilityByDomains,
+  getCorroboratingArticles,
   getDecayedMemoryIds,
   deleteMemoryByIds,
   extractDomains,
@@ -17,8 +18,8 @@ export interface Env {
   MEMORY_INDEX: VectorizeIndex;
 }
 
-const HOURS_BACK = 24;
-const CONFIDENCE_THRESHOLD = 90;
+const HOURS_BACK = 168;
+const CONFIDENCE_THRESHOLD = 95;
 const WINDOW_HOURS = 2;
 const SCORE_CHANGE_THRESHOLD = 1;
 const DECAY_LAMBDA = 0.05;
@@ -66,11 +67,22 @@ export async function recomputeScores(db: D1Database): Promise<number> {
     uniqueAgents.add(post.agent_id);
     const convergence = uniqueAgents.size >= 2 ? 0.05 : 0;
 
+    // Retroactive corroboration: articles from different sources on the same topics ingested after the post
+    const originalSourceId = post.article_id
+      ? (await db.prepare('SELECT source_id FROM raw_articles WHERE id = ?').bind(post.article_id).first<{ source_id: string }>())?.source_id ?? ''
+      : '';
+    const corroborating = originalSourceId
+      ? await getCorroboratingArticles(originalSourceId, tags, post.created_at, db)
+      : [];
+    const corroboratingSourceIds = new Set(corroborating.map((c) => c.source_id));
+    const corroboratingSourceCount = corroboratingSourceIds.size;
+
     const score = computeConfidenceScore({
       uniqueSourceDomains: allDomains.length,
       reliabilityAvg,
       agreementFactor: agFactor,
       convergence,
+      corroboratingSourceCount,
     });
 
     if (Math.abs(score - post.confidence_score) > SCORE_CHANGE_THRESHOLD) {

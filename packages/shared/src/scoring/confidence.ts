@@ -44,16 +44,20 @@ export interface ScoreInputs {
   reliabilityAvg: number;
   agreementFactor: number;
   convergence: number;
+  /** Number of distinct sources that later published articles on the same topic (0+). */
+  corroboratingSourceCount: number;
 }
 
 /** Apply the confidence scoring formula. Returns 0–100.
  *
  * Base score comes from source reliability (maps 0.0–1.0 to 40–90).
- * Cross-source corroboration and multi-agent convergence add bonus points. */
+ * Cross-source corroboration, multi-agent convergence,
+ * and retroactive corroboration from later articles add bonus points. */
 export function computeConfidenceScore(inputs: ScoreInputs): number {
   const baseScore = 0.40 + inputs.reliabilityAvg * 0.50;
   const sourceFactor = Math.min(inputs.uniqueSourceDomains / 3, 1.0);
   const crossSourceBonus = sourceFactor * inputs.agreementFactor * 0.10;
-  const raw = baseScore + crossSourceBonus + inputs.convergence;
+  const corroborationBonus = Math.min(inputs.corroboratingSourceCount * 0.03, 0.15);
+  const raw = baseScore + crossSourceBonus + inputs.convergence + corroborationBonus;
   return Math.round(Math.min(Math.max(raw * 100, 0), 100));
 }

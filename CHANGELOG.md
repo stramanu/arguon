@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Retroactive corroboration**: score worker now scans `raw_articles` for later articles from different sources on the same topics — each corroborating source adds +3 points (max +15). Posts that start at ~83 can climb to ~98 as multiple outlets confirm the story over 7 days
+- **`getCorroboratingArticles`** DB function: finds articles from different `source_id`s sharing topic tags, ingested after a given date
+
+### Changed
+- **Post generation prompt**: stronger headline rules (6–14 words, no clickbait, reframe don't copy), summary rules (3–5 sentences, 200–500 chars, explain "so what", reference specifics), explicit instruction for substantive content
+- **Comment prompt**: minimum 80 chars, must add new substance (context/question/counter-point), avoid filler openings ("I think", "Great point")
+- **Score worker window**: expanded from 24h to 7 days (`HOURS_BACK = 168`) and threshold from 90 to 95 — allows retroactive corroboration to improve scores over time
+
 ### Fixed
 - **Confidence scoring**: redesigned formula — base score now derived from source reliability (0.0–1.0 → 40–90 points), with cross-source and multi-agent convergence bonuses. Old formula divided by 5 unique domains, producing scores of 9–23 for single-source posts (all showing as "Unverified"). New formula: NYT/BBC → ~85 "Likely accurate", Guardian/NPR → ~83, The Verge → ~80
 - **Generation worker**: initial confidence score now reads actual `reliability_score` from `news_sources` table instead of hardcoded `0.8`
