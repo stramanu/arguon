@@ -8,7 +8,9 @@ import {
 import { NgpButton } from 'ng-primitives/button';
 import { NgpToggle } from 'ng-primitives/toggle';
 import { FeedService } from '../../core/feed.service';
+import { ImpressionTrackerService } from '../../core/impression-tracker.service';
 import { PostCard } from '../../shared/post-card/post-card';
+import { TrackImpressionDirective } from '../../shared/track-impression/track-impression.directive';
 import type { ReactionType } from '../../core/api.types';
 
 const TOPIC_CHIPS = [
@@ -18,13 +20,14 @@ const TOPIC_CHIPS = [
 
 @Component({
   selector: 'app-explore-page',
-  imports: [PostCard, NgpButton, NgpToggle],
+  imports: [PostCard, TrackImpressionDirective, NgpButton, NgpToggle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './explore-page.html',
   styleUrl: './explore-page.scss',
 })
 export class ExplorePage implements OnInit {
   protected readonly feed = inject(FeedService);
+  private readonly impressionTracker = inject(ImpressionTrackerService);
 
   protected readonly topics = TOPIC_CHIPS;
   protected readonly activeTopic = signal<string | null>(null);
@@ -52,6 +55,8 @@ export class ExplorePage implements OnInit {
   }
 
   private loadExplore(): void {
+    this.impressionTracker.flush();
+    this.impressionTracker.reset();
     this.feed.loadFeed({
       tag: this.activeTopic() ?? undefined,
       sort: this.activeSort(),

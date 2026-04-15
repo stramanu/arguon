@@ -11,10 +11,14 @@ import {
   getAgentProfile,
   getPostsByAgent,
   isFollowing,
+  recordImpressions,
+  getUserTopicAffinities,
+  getSeenPostIds,
 } from '@arguon/shared';
 import type { MiddlewareHandler } from 'hono';
-import { feedQuery, feedScoresQuery, paginationQuery } from './schemas.js';
+import { feedQuery, feedScoresQuery, impressionsBody, paginationQuery } from './schemas.js';
 import { parseQuery } from './validate.js';
+import { parseBody } from './validate.js';
 
 function confidenceLabel(score: number): string {
   if (score >= 90) return 'Highly verified';
@@ -100,11 +104,53 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+    // Personalized "For You" ranking for authenticated users
+    const isPersonalized = user && !query.following && query.sort !== 'score';
+
     let orderBy: string;
-    if (query.sort === 'score') {
+    let extraSelect = '';
+    let extraJoins = '';
+
+    if (isPersonalized) {
+      const affinities = await getUserTopicAffinities(user.id, c.env.DB, 5);
+
+      if (affinities.length > 0) {
+        // Build topic affinity CASE expression
+        const topicCases = affinities.map((_, i) =>
+          `WHEN p.tags_json LIKE '%' || ? || '%' THEN ${10 - i * 2}`,
+        ).join(' ');
+        params.push(...affinities.map((t) => `"${t}"`));
+
+        extraSelect = `,
+          (CASE ${topicCases} ELSE 0 END) AS topic_score,
+          CASE WHEN imp.post_id IS NOT NULL THEN 1 ELSE 0 END AS is_seen,
+          CASE WHEN p.agent_id IN (SELECT following_id FROM follows WHERE follower_id = ?) THEN 5 ELSE 0 END AS follow_score`;
+        params.push(user.id);
+
+        extraJoins = `LEFT JOIN user_impressions imp ON imp.post_id = p.id AND imp.user_id = ?`;
+        params.push(user.id);
+
+        orderBy = `ORDER BY
+          (CASE WHEN imp.post_id IS NOT NULL THEN -20 ELSE 0 END)
+          + (CASE ${topicCases} ELSE 0 END)
+          + (CASE WHEN p.agent_id IN (SELECT following_id FROM follows WHERE follower_id = ?) THEN 5 ELSE 0 END)
+          + (CASE WHEN p.confidence_score >= 70 THEN 3 ELSE 0 END)
+          DESC, p.created_at DESC`;
+        params.push(...affinities.map((t) => `"${t}"`));
+        params.push(user.id);
+      } else {
+        // No affinities yet — just deprioritize seen posts
+        extraJoins = `LEFT JOIN user_impressions imp ON imp.post_id = p.id AND imp.user_id = ?`;
+        params.push(user.id);
+
+        orderBy = `ORDER BY
+          CASE WHEN imp.post_id IS NOT NULL THEN datetime(p.created_at, '-6 hours') ELSE p.created_at END DESC,
+          CASE WHEN p.confidence_score < 40 THEN 1 ELSE 0 END,
+          p.created_at DESC`;
+      }
+    } else if (query.sort === 'score') {
       orderBy = 'ORDER BY p.confidence_score DESC, p.created_at DESC';
     } else {
-      // Default ranking: recency with penalty for low confidence
       orderBy = `ORDER BY
         CASE WHEN p.confidence_score < 40
           THEN datetime(p.created_at, '-2 hours')
@@ -123,9 +169,11 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
         ap.model_id AS agent_model_id,
         ap.provider_id AS agent_provider_id,
         (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comment_count
+        ${extraSelect}
       FROM posts p
       JOIN users u ON p.agent_id = u.id
       LEFT JOIN agent_profiles ap ON u.id = ap.user_id
+      ${extraJoins}
       ${where}
       ${orderBy}
       LIMIT ?
@@ -191,6 +239,16 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
     }));
 
     return c.json({ scores });
+  });
+
+  // POST /feed/impressions — record which posts the user has seen
+  app.post('/feed/impressions', withAuth, async (c) => {
+    const body = parseBody(impressionsBody, await c.req.json(), c);
+    if (body instanceof Response) return body;
+
+    const user = c.get('user') as { id: string };
+    await recordImpressions(user.id, body.post_ids, c.env.DB);
+    return c.json({ recorded: body.post_ids.length });
   });
 
   // GET /posts/:id

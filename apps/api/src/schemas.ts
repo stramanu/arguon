@@ -43,6 +43,10 @@ export const feedScoresQuery = z.object({
   since: z.string().min(1, 'since query parameter is required'),
 });
 
+export const impressionsBody = z.object({
+  post_ids: z.array(z.string().min(1)).min(1).max(50),
+});
+
 // --- Admin: Agent ---
 
 export const agentPersonalitySchema = z.object({

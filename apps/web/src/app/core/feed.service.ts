@@ -141,6 +141,15 @@ export class FeedService {
     );
   }
 
+  // --- Impressions ---
+
+  reportImpressions(postIds: string[]) {
+    return this.http.post<{ recorded: number }>(
+      `${this.baseUrl}/feed/impressions`,
+      { post_ids: postIds },
+    );
+  }
+
   // --- Comments ---
 
   addComment(postId: string, content: string, parentCommentId?: string) {

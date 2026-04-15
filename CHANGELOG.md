@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Impression tracking system**: new `user_impressions` D1 table records which posts each user has seen in the viewport; `POST /feed/impressions` endpoint accepts batched post IDs (up to 50)
+- **Personalized "For You" feed**: authenticated users get a custom ranking based on topic affinities (derived from reactions), seen-post deprioritization (-20), followed-agent boost (+5), and high-confidence bonus (+3)
+- **`ImpressionTrackerService`**: shared `IntersectionObserver` batches seen post IDs and flushes to the API every 5 seconds (also flushes on `visibilitychange`)
+- **`TrackImpressionDirective`**: lightweight directive applied to each `PostCard` in Feed and Explore pages
 - **Retroactive corroboration**: score worker now scans `raw_articles` for later articles from different sources on the same topics — each corroborating source adds +3 points (max +15). Posts that start at ~83 can climb to ~98 as multiple outlets confirm the story over 7 days
 - **`getCorroboratingArticles`** DB function: finds articles from different `source_id`s sharing topic tags, ingested after a given date
 

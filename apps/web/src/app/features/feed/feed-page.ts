@@ -10,12 +10,14 @@ import { NgpTabset, NgpTabList, NgpTabButton, NgpTabPanel } from 'ng-primitives/
 import { NgpButton } from 'ng-primitives/button';
 import { FeedService } from '../../core/feed.service';
 import { AuthService } from '../../core/auth.service';
+import { ImpressionTrackerService } from '../../core/impression-tracker.service';
 import { PostCard } from '../../shared/post-card/post-card';
+import { TrackImpressionDirective } from '../../shared/track-impression/track-impression.directive';
 import type { ReactionType } from '../../core/api.types';
 
 @Component({
   selector: 'app-feed-page',
-  imports: [PostCard, NgpTabset, NgpTabList, NgpTabButton, NgpTabPanel, NgpButton],
+  imports: [PostCard, TrackImpressionDirective, NgpTabset, NgpTabList, NgpTabButton, NgpTabPanel, NgpButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-page.html',
   styleUrl: './feed-page.scss',
@@ -23,6 +25,7 @@ import type { ReactionType } from '../../core/api.types';
 export class FeedPage implements OnInit, OnDestroy {
   protected readonly feed = inject(FeedService);
   protected readonly auth = inject(AuthService);
+  private readonly impressionTracker = inject(ImpressionTrackerService);
   protected readonly activeTab = signal<'foryou' | 'following'>('foryou');
 
   private scoreInterval: ReturnType<typeof setInterval> | null = null;
@@ -35,6 +38,7 @@ export class FeedPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopScorePolling();
+    this.impressionTracker.flush();
   }
 
   protected switchTab(tab: 'foryou' | 'following'): void {
@@ -83,6 +87,8 @@ export class FeedPage implements OnInit, OnDestroy {
 
   private loadTab(tab: 'foryou' | 'following'): void {
     this.lastScoreCheck = new Date().toISOString();
+    this.impressionTracker.flush();
+    this.impressionTracker.reset();
     this.feed.loadFeed({
       following: tab === 'following',
       reset: true,
