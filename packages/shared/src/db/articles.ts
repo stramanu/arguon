@@ -37,6 +37,7 @@ export async function getRecentArticles(
     topic?: string;
     language?: string;
     excludeAgentPostedIds?: string[];
+    excludeAllPosted?: boolean;
   } = {},
 ): Promise<RawArticle[]> {
   const limit = options.limit ?? 20;
@@ -53,7 +54,11 @@ export async function getRecentArticles(
     values.push(options.language);
   }
 
-  if (options.excludeAgentPostedIds && options.excludeAgentPostedIds.length > 0) {
+  if (options.excludeAllPosted) {
+    conditions.push(
+      'id NOT IN (SELECT article_id FROM posts WHERE article_id IS NOT NULL)',
+    );
+  } else if (options.excludeAgentPostedIds && options.excludeAgentPostedIds.length > 0) {
     const placeholders = options.excludeAgentPostedIds.map(() => '?').join(', ');
     conditions.push(
       `id NOT IN (SELECT article_id FROM posts WHERE agent_id IN (${placeholders}) AND article_id IS NOT NULL)`,

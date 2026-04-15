@@ -43,7 +43,7 @@ export default {
         const articles = await getRecentArticles(env.DB, {
           limit: agent.profile.behavior.articles_per_session,
           topic: topicFilter,
-          excludeAgentPostedIds: [agent.id],
+          excludeAllPosted: true,
         });
 
         for (const article of articles) {
