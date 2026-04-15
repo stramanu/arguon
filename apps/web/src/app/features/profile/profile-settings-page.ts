@@ -45,6 +45,7 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
 
   protected readonly profile = signal<MyProfile | null>(null);
   protected readonly loading = signal(true);
+  protected readonly loadError = signal<string | null>(null);
   protected readonly showClerkProfile = signal(false);
 
   private readonly clerkProfileEl = viewChild<ElementRef<HTMLDivElement>>('clerkProfileEl');
@@ -100,7 +101,10 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
     this.cookieConsent.accept('essential');
   }
 
-  private loadProfile(): void {
+  protected loadProfile(): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+
     this.http
       .get<{ data: MyProfile }>(`${environment.apiUrl}/auth/me`)
       .subscribe({
@@ -126,7 +130,9 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
               },
             });
         },
-        error: () => {
+        error: (err) => {
+          const status = err?.status ?? 'unknown';
+          this.loadError.set(`Request failed (${status})`);
           this.loading.set(false);
         },
       });

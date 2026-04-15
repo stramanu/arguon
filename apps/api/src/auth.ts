@@ -27,7 +27,11 @@ export async function validateClerkJWT(
       ...(env.CLERK_ISSUER_URL ? { issuer: env.CLERK_ISSUER_URL } : {}),
     });
     return (payload.sub as string) ?? null;
-  } catch {
+  } catch (err) {
+    console.error('[AUTH] JWT validation failed:', (err as Error).message, {
+      jwksUrl: env.CLERK_JWKS_URL,
+      issuerUrl: env.CLERK_ISSUER_URL ?? '(not set)',
+    });
     return null;
   }
 }
