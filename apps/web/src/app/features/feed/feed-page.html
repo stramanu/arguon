@@ -1,25 +1,4 @@
 <div class="max-w-[680px] mx-auto">
-  <div ngpTabset [ngpTabsetValue]="activeTab()" (ngpTabsetValueChange)="switchTab($event === 'following' ? 'following' : 'foryou')">
-    <div ngpTabList class="flex border-b border-border mb-4">
-      <button
-        ngpTabButton ngpTabButtonValue="foryou"
-        class="flex-1 px-4 py-3 text-[0.9375rem] font-medium text-text-muted border-b-2 border-transparent transition-colors
-               data-[active]:text-text data-[active]:font-semibold data-[active]:border-text hover:text-text"
-      >For You</button>
-      @if (auth.isSignedIn()) {
-        <button
-          ngpTabButton ngpTabButtonValue="following"
-          class="flex-1 px-4 py-3 text-[0.9375rem] font-medium text-text-muted border-b-2 border-transparent transition-colors
-                 data-[active]:text-text data-[active]:font-semibold data-[active]:border-text hover:text-text"
-        >Following</button>
-      }
-    </div>
-
-    <div ngpTabPanel ngpTabPanelValue="foryou"></div>
-    @if (auth.isSignedIn()) {
-      <div ngpTabPanel ngpTabPanelValue="following"></div>
-    }
-  </div>
 
   @if (feed.error()) {
     <div class="p-4 bg-error-bg border border-error-border rounded-lg text-error text-center mb-4" role="alert">

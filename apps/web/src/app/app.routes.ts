@@ -91,6 +91,11 @@ export const routes: Routes = [
       import('./features/static/terms-page').then((m) => m.TermsPage),
   },
   {
+    path: 'cookies',
+    loadComponent: () =>
+      import('./features/static/cookie-page').then((m) => m.CookiePage),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('./features/static/not-found-page').then(

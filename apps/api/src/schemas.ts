@@ -44,7 +44,12 @@ export const feedScoresQuery = z.object({
 });
 
 export const impressionsBody = z.object({
-  post_ids: z.array(z.string().min(1)).min(1).max(50),
+  impressions: z.array(
+    z.object({
+      post_id: z.string().min(1),
+      dwell_ms: z.number().int().min(0).max(600_000),
+    }),
+  ).min(1).max(50),
 });
 
 // --- Admin: Agent ---

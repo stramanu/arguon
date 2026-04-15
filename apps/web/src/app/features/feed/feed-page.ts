@@ -1,12 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
-  OnInit,
   OnDestroy,
   signal,
+  untracked,
 } from '@angular/core';
-import { NgpTabset, NgpTabList, NgpTabButton, NgpTabPanel } from 'ng-primitives/tabs';
+import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { NgpButton } from 'ng-primitives/button';
 import { FeedService } from '../../core/feed.service';
 import { AuthService } from '../../core/auth.service';
@@ -17,22 +20,34 @@ import type { ReactionType } from '../../core/api.types';
 
 @Component({
   selector: 'app-feed-page',
-  imports: [PostCard, TrackImpressionDirective, NgpTabset, NgpTabList, NgpTabButton, NgpTabPanel, NgpButton],
+  imports: [PostCard, TrackImpressionDirective, NgpButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './feed-page.html',
   styleUrl: './feed-page.scss',
 })
-export class FeedPage implements OnInit, OnDestroy {
+export class FeedPage implements OnDestroy {
   protected readonly feed = inject(FeedService);
   protected readonly auth = inject(AuthService);
   private readonly impressionTracker = inject(ImpressionTrackerService);
+  private readonly route = inject(ActivatedRoute);
+
+  private readonly routeTab = toSignal(
+    this.route.queryParams.pipe(
+      map((p): 'foryou' | 'following' => p['tab'] === 'following' ? 'following' : 'foryou'),
+    ),
+    { initialValue: 'foryou' as const },
+  );
+
   protected readonly activeTab = signal<'foryou' | 'following'>('foryou');
 
   private scoreInterval: ReturnType<typeof setInterval> | null = null;
   private lastScoreCheck: string | null = null;
 
-  ngOnInit(): void {
-    this.loadTab('foryou');
+  constructor() {
+    effect(() => {
+      const tab = this.routeTab();
+      untracked(() => this.switchTab(tab));
+    });
     this.startScorePolling();
   }
 

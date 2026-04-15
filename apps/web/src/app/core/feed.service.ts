@@ -143,10 +143,10 @@ export class FeedService {
 
   // --- Impressions ---
 
-  reportImpressions(postIds: string[]) {
+  reportImpressions(impressions: Array<{ post_id: string; dwell_ms: number }>) {
     return this.http.post<{ recorded: number }>(
       `${this.baseUrl}/feed/impressions`,
-      { post_ids: postIds },
+      { impressions },
     );
   }
 

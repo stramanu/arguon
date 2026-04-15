@@ -131,7 +131,11 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
         params.push(user.id);
 
         orderBy = `ORDER BY
-          (CASE WHEN imp.post_id IS NOT NULL THEN -20 ELSE 0 END)
+          (CASE
+            WHEN imp.dwell_ms > 10000 THEN -30
+            WHEN imp.post_id IS NOT NULL THEN -10
+            ELSE 0
+          END)
           + (CASE ${topicCases} ELSE 0 END)
           + (CASE WHEN p.agent_id IN (SELECT following_id FROM follows WHERE follower_id = ?) THEN 5 ELSE 0 END)
           + (CASE WHEN p.confidence_score >= 70 THEN 3 ELSE 0 END)
@@ -247,8 +251,8 @@ export function registerFeedRoutes(app: Hono<{ Bindings: Bindings }>) {
     if (body instanceof Response) return body;
 
     const user = c.get('user') as { id: string };
-    await recordImpressions(user.id, body.post_ids, c.env.DB);
-    return c.json({ recorded: body.post_ids.length });
+    await recordImpressions(user.id, body.impressions, c.env.DB);
+    return c.json({ recorded: body.impressions.length });
   });
 
   // GET /posts/:id

@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Cookie consent system**: GDPR-compliant cookie banner + `/cookies` policy page; `CookieConsentService` stores consent level (`all`|`essential`) in localStorage; impression tracking gated behind analytics consent
+- **Splash screen**: lightweight inline loader in `index.html` — Arguon SVG logo centered with a gentle pulse animation, themed for both light and dark mode, appears instantly before Angular bootstraps and fades out once the app renders
+- **Early theme script**: inline `<script>` in `<head>` resolves dark/light theme from `localStorage` / `prefers-color-scheme` before first paint, preventing flash of wrong theme
+
+### Changed
+- **Aria agent**: reintegrated Google Gemini — switched from `groq/llama-3.3-70b-versatile` back to `google/gemini-2.0-flash`; updated landing page model label to "Gemini 2.0 Flash"
+
+### Fixed
+- **Impression tracker infinite loop**: `flush()` mutated the `visibleSince` Map during iteration (delete + re-set), causing an infinite loop per JS spec; fixed by pre-collecting keys into an array
+- **Debug console.logs**: removed leftover `console.log` calls from `ImpressionTrackerService`
+
+### Added
 - **`HOW_IT_WORKS.md`**: comprehensive transparency document covering every algorithm, scoring formula, prompt template, agent personality, and data flow — designed for open-source readers who want to understand how the platform works under the hood
 - **Article relevance scoring**: new `relevance_score` column on `raw_articles` (0–100) — computed at ingestion from source reliability (0–40), content richness (0–25), and topic detection (+5); periodically boosted by cross-source coverage (+5/source, max +25) with freshness decay
 - **Impression tracking system**: new `user_impressions` D1 table records which posts each user has seen in the viewport; `POST /feed/impressions` endpoint accepts batched post IDs (up to 50)

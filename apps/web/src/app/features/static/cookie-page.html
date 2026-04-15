@@ -1,0 +1,80 @@
+<article class="max-w-[640px] mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-2">Cookie Policy</h1>
+  <p class="text-text-muted text-sm mb-6">Last updated: April 2026</p>
+
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold mb-3">1. What Are Cookies &amp; Local Storage</h2>
+    <p class="text-text-secondary leading-relaxed">
+      Cookies are small text files stored on your device when you visit a website.
+      Arguon also uses <strong>localStorage</strong>, a browser-based storage mechanism
+      that serves a similar purpose. Both help the site remember your preferences and
+      understand how you use the service.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold mb-3">2. What We Use</h2>
+
+    <h3 class="text-lg font-medium mt-4 mb-2">Essential (always active)</h3>
+    <p class="text-text-secondary leading-relaxed mb-3">
+      These are strictly necessary for the platform to function. They cannot be disabled.
+    </p>
+    <ul class="list-disc pl-5 text-text-secondary leading-relaxed space-y-1 mb-4">
+      <li><strong>Authentication (Clerk)</strong> &mdash; session cookies to keep you signed in</li>
+      <li><strong>Theme preference</strong> &mdash; remembers your light/dark mode choice (localStorage: <code class="text-text bg-surface-alt px-1 rounded">arguon-theme</code>)</li>
+      <li><strong>Cookie consent</strong> &mdash; records your preference from this page (localStorage: <code class="text-text bg-surface-alt px-1 rounded">arguon-cookie-consent</code>)</li>
+    </ul>
+
+    <h3 class="text-lg font-medium mt-4 mb-2">Analytics (requires consent)</h3>
+    <p class="text-text-secondary leading-relaxed mb-3">
+      These help us understand how you interact with Arguon so we can improve the experience
+      and personalize your feed. They are only activated if you choose &ldquo;Accept all&rdquo;.
+    </p>
+    <ul class="list-disc pl-5 text-text-secondary leading-relaxed space-y-1">
+      <li><strong>Impression tracking</strong> &mdash; when enabled, records which posts appear in your viewport and for how long, sent to our server to personalize your &ldquo;For You&rdquo; feed. No data is stored on your device for this purpose.</li>
+    </ul>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold mb-3">3. Third-Party Cookies</h2>
+    <ul class="list-disc pl-5 text-text-secondary leading-relaxed space-y-1">
+      <li><strong>Clerk</strong> &mdash; sets authentication cookies to manage your session</li>
+      <li><strong>Cloudflare</strong> &mdash; may set security cookies (e.g. <code class="text-text bg-surface-alt px-1 rounded">__cf_bm</code>) for bot protection</li>
+    </ul>
+    <p class="text-text-secondary leading-relaxed mt-3">
+      We do not use any advertising or social-media tracking cookies.
+    </p>
+  </section>
+
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold mb-3">4. Manage Your Preferences</h2>
+    <p class="text-text-secondary leading-relaxed mb-4">
+      You can change your cookie/analytics preference at any time using the buttons below.
+      Your current preference: <strong>{{ consent.hasConsented() ? (consent.allowsAnalytics() ? 'All cookies accepted' : 'Essential only') : 'Not yet chosen' }}</strong>
+    </p>
+    <div class="flex gap-3 flex-wrap">
+      <button
+        class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer"
+        [class]="consent.allowsAnalytics() ? 'bg-primary text-on-primary border-primary' : 'bg-surface-alt text-text border-border hover:border-primary'"
+        (click)="consent.accept('all')">
+        Accept all
+      </button>
+      <button
+        class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors cursor-pointer"
+        [class]="consent.hasConsented() && !consent.allowsAnalytics() ? 'bg-primary text-on-primary border-primary' : 'bg-surface-alt text-text border-border hover:border-primary'"
+        (click)="consent.accept('essential')">
+        Essential only
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-xl font-semibold mb-3">5. More Information</h2>
+    <p class="text-text-secondary leading-relaxed">
+      For further details about how we handle your data, please see our
+      <a routerLink="/privacy" class="text-primary hover:underline">Privacy Policy</a>.
+      For questions, contact us at
+      <a href="mailto:privacy@arguon.com" class="text-primary hover:underline">privacy&#64;arguon.com</a>.
+    </p>
+  </section>
+</article>

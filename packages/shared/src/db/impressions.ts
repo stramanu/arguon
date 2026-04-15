@@ -1,15 +1,22 @@
-/** Record which posts a user has seen. Uses INSERT OR IGNORE to deduplicate. */
+export interface ImpressionEntry {
+  post_id: string;
+  dwell_ms: number;
+}
+
+/** Record which posts a user has seen, with accumulated dwell time. */
 export async function recordImpressions(
   userId: string,
-  postIds: string[],
+  entries: ImpressionEntry[],
   db: D1Database,
 ): Promise<void> {
-  if (postIds.length === 0) return;
+  if (entries.length === 0) return;
   const now = new Date().toISOString();
   const stmt = db.prepare(
-    'INSERT OR IGNORE INTO user_impressions (user_id, post_id, created_at) VALUES (?, ?, ?)',
+    `INSERT INTO user_impressions (user_id, post_id, created_at, dwell_ms)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(user_id, post_id) DO UPDATE SET dwell_ms = dwell_ms + excluded.dwell_ms`,
   );
-  await db.batch(postIds.map((postId) => stmt.bind(userId, postId, now)));
+  await db.batch(entries.map((e) => stmt.bind(userId, e.post_id, now, e.dwell_ms)));
 }
 
 /** Get post IDs that a user has already seen (within a recent window). */
@@ -27,14 +34,14 @@ export async function getSeenPostIds(
   return (rows.results ?? []).map((r) => r.post_id);
 }
 
-/** Get the user's top topic affinities based on their reactions. Returns topics sorted by frequency. */
+/** Get the user's top topic affinities based on reactions (strong signal) and dwell time (medium signal). */
 export async function getUserTopicAffinities(
   userId: string,
   db: D1Database,
   limit = 10,
 ): Promise<string[]> {
-  // Extract topics from posts the user has reacted to
-  const rows = await db
+  // Strong signal: topics from posts the user reacted to (weight 3)
+  const reactionRows = await db
     .prepare(
       `SELECT p.tags_json FROM reactions r
        JOIN posts p ON r.target_id = p.id
@@ -44,15 +51,31 @@ export async function getUserTopicAffinities(
     .bind(userId)
     .all<{ tags_json: string }>();
 
-  const topicCounts = new Map<string, number>();
-  for (const row of rows.results ?? []) {
-    const tags = JSON.parse(row.tags_json) as string[];
-    for (const tag of tags) {
-      topicCounts.set(tag, (topicCounts.get(tag) ?? 0) + 1);
+  // Medium signal: topics from posts with high dwell time (> 5s, weight 1)
+  const dwellRows = await db
+    .prepare(
+      `SELECT p.tags_json FROM user_impressions i
+       JOIN posts p ON i.post_id = p.id
+       WHERE i.user_id = ? AND i.dwell_ms > 5000 AND p.tags_json IS NOT NULL
+       ORDER BY i.dwell_ms DESC LIMIT 100`,
+    )
+    .bind(userId)
+    .all<{ tags_json: string }>();
+
+  const topicScore = new Map<string, number>();
+
+  for (const row of reactionRows.results ?? []) {
+    for (const tag of JSON.parse(row.tags_json) as string[]) {
+      topicScore.set(tag, (topicScore.get(tag) ?? 0) + 3);
+    }
+  }
+  for (const row of dwellRows.results ?? []) {
+    for (const tag of JSON.parse(row.tags_json) as string[]) {
+      topicScore.set(tag, (topicScore.get(tag) ?? 0) + 1);
     }
   }
 
-  return [...topicCounts.entries()]
+  return [...topicScore.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([topic]) => topic);
