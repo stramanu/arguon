@@ -46,9 +46,14 @@ export interface ScoreInputs {
   convergence: number;
 }
 
-/** Apply the confidence scoring formula. Returns 0–100. */
+/** Apply the confidence scoring formula. Returns 0–100.
+ *
+ * Base score comes from source reliability (maps 0.0–1.0 to 40–90).
+ * Cross-source corroboration and multi-agent convergence add bonus points. */
 export function computeConfidenceScore(inputs: ScoreInputs): number {
-  const sourceFactor = Math.min(inputs.uniqueSourceDomains / 5, 1.0);
-  const raw = sourceFactor * inputs.reliabilityAvg * inputs.agreementFactor + inputs.convergence;
+  const baseScore = 0.40 + inputs.reliabilityAvg * 0.50;
+  const sourceFactor = Math.min(inputs.uniqueSourceDomains / 3, 1.0);
+  const crossSourceBonus = sourceFactor * inputs.agreementFactor * 0.10;
+  const raw = baseScore + crossSourceBonus + inputs.convergence;
   return Math.round(Math.min(Math.max(raw * 100, 0), 100));
 }

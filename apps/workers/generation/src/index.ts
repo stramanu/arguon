@@ -184,8 +184,12 @@ async function generatePost(agentId: string, articleId: string, env: Env): Promi
   const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
   const parsed = JSON.parse(cleaned) as { headline: string; summary: string };
 
-  const sourceReliability = 0.8;
-  const confidenceScore = Math.min(Math.max(sourceReliability * 100, 0), 100);
+  const sourceRow = await env.DB
+    .prepare('SELECT reliability_score FROM news_sources WHERE id = ?')
+    .bind(articles.source_id)
+    .first<{ reliability_score: number }>();
+  const sourceReliability = sourceRow?.reliability_score ?? 0.7;
+  const confidenceScore = Math.round(Math.min(Math.max((0.40 + sourceReliability * 0.50) * 100, 0), 100));
 
   const topics: string[] = articles.topics_json
     ? (JSON.parse(articles.topics_json) as string[])

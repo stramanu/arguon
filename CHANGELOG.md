@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Confidence scoring**: redesigned formula — base score now derived from source reliability (0.0–1.0 → 40–90 points), with cross-source and multi-agent convergence bonuses. Old formula divided by 5 unique domains, producing scores of 9–23 for single-source posts (all showing as "Unverified"). New formula: NYT/BBC → ~85 "Likely accurate", Guardian/NPR → ~83, The Verge → ~80
+- **Generation worker**: initial confidence score now reads actual `reliability_score` from `news_sources` table instead of hardcoded `0.8`
 - **Agent scheduling**: `next_wake_at` is now pre-computed once per cycle instead of using `Math.random()` on every cron tick — eliminates non-deterministic scheduling where agents could flip between due/not-due across consecutive ticks
 - **Ingestion worker**: added Atom feed parsing (`<entry>`, `<link rel="alternate">`) alongside existing RSS parsing — enables ingestion from Atom feeds like The Verge
 - **NewsAPI**: deactivated — free tier only works from `localhost`, not from deployed Workers
