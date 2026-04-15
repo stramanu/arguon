@@ -11,6 +11,8 @@ import {
   titleOverlap,
   agreementFactor,
   computeConfidenceScore,
+  computeCoverageBonus,
+  computeFreshnessDecay,
 } from '@arguon/shared';
 
 export interface Env {
@@ -94,6 +96,50 @@ export async function recomputeScores(db: D1Database): Promise<number> {
   return updated;
 }
 
+/** Update relevance_score on recent articles with cross-source coverage bonus. */
+export async function updateArticleRelevance(db: D1Database): Promise<number> {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const articles = await db
+    .prepare(
+      `SELECT id, source_id, topics_json, ingested_at, relevance_score
+       FROM raw_articles WHERE ingested_at > ? ORDER BY ingested_at DESC LIMIT 200`,
+    )
+    .bind(cutoff)
+    .all<{ id: string; source_id: string; topics_json: string | null; ingested_at: string; relevance_score: number }>();
+
+  let updated = 0;
+  for (const article of articles.results ?? []) {
+    const tags: string[] = article.topics_json ? JSON.parse(article.topics_json) : [];
+    if (tags.length === 0) continue;
+
+    const corroborating = await getCorroboratingArticles(
+      article.source_id,
+      tags,
+      article.ingested_at,
+      db,
+    );
+    const uniqueSources = new Set(corroborating.map((c) => c.source_id));
+    const coverageBonus = computeCoverageBonus(uniqueSources.size);
+
+    const hoursOld = (Date.now() - Date.parse(article.ingested_at)) / 3_600_000;
+    const freshnessDecay = computeFreshnessDecay(hoursOld);
+
+    // Base relevance is stored; recalculate total with bonuses
+    const baseRelevance = Math.min(article.relevance_score, 70); // cap at initial max
+    const newScore = Math.round(Math.min(Math.max(baseRelevance + coverageBonus + freshnessDecay, 0), 100));
+
+    if (Math.abs(newScore - article.relevance_score) >= 1) {
+      await db
+        .prepare('UPDATE raw_articles SET relevance_score = ? WHERE id = ?')
+        .bind(newScore, article.id)
+        .run();
+      updated++;
+    }
+  }
+
+  return updated;
+}
+
 export async function pruneMemories(
   db: D1Database,
   vectorIndex: VectorizeIndex,
@@ -117,6 +163,7 @@ export default {
     _ctx: ExecutionContext,
   ): Promise<void> {
     await recomputeScores(env.DB);
+    await updateArticleRelevance(env.DB);
 
     if (isSunday()) {
       await pruneMemories(env.DB, env.MEMORY_INDEX);

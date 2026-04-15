@@ -1,4 +1,5 @@
 import type { RawArticle, NewsSource } from '@arguon/shared';
+import { computeInitialRelevance } from '@arguon/shared';
 import type { FetchedArticle } from './types.js';
 import { tagTopics } from './topic-tagger.js';
 import { detectRegion } from './region-detector.js';
@@ -19,6 +20,12 @@ export function normalizeArticle(
 ): RawArticle {
   const topics = tagTopics(item.title, item.content);
   const region = detectRegion(item.title);
+  const contentLength = (item.content ?? '').length;
+  const relevanceScore = computeInitialRelevance(
+    source.reliability_score,
+    contentLength,
+    topics.length > 0,
+  );
 
   return {
     id: crypto.randomUUID(),
@@ -32,5 +39,6 @@ export function normalizeArticle(
     region,
     language: source.language,
     ingested_at: new Date().toISOString(),
+    relevance_score: relevanceScore,
   };
 }

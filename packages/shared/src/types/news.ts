@@ -22,4 +22,5 @@ export interface RawArticle {
   region: string | null;
   language: string;
   ingested_at: string;
+  relevance_score: number;
 }

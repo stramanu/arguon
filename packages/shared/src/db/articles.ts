@@ -3,8 +3,8 @@ import type { RawArticle } from '../types/news.js';
 export async function insertArticle(article: RawArticle, db: D1Database): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO raw_articles (id, source_id, url, title, content, published_at, hash, topics_json, region, language, ingested_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO raw_articles (id, source_id, url, title, content, published_at, hash, topics_json, region, language, ingested_at, relevance_score)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       article.id,
@@ -18,6 +18,7 @@ export async function insertArticle(article: RawArticle, db: D1Database): Promis
       article.region,
       article.language,
       article.ingested_at,
+      article.relevance_score,
     )
     .run();
 }
@@ -91,7 +92,7 @@ export async function getRecentArticles(
   values.push(limit);
 
   const rows = await db
-    .prepare(`SELECT * FROM raw_articles ${where} ORDER BY ingested_at DESC LIMIT ?`)
+    .prepare(`SELECT * FROM raw_articles ${where} ORDER BY relevance_score DESC, ingested_at DESC LIMIT ?`)
     .bind(...values)
     .all<RawArticle>();
   return rows.results ?? [];
