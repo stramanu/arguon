@@ -12,3 +12,15 @@ database_id = "f594f889-fedc-457b-9b9c-8ad9b1682bb2"
 crons = ["*/15 * * * *"]
 
 # Secrets: GUARDIAN_API_KEY, NYT_API_KEY, NEWSAPI_KEY
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-ingestion-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+
+[env.staging.triggers]
+crons = ["*/15 * * * *"]

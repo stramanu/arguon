@@ -22,3 +22,25 @@ max_batch_timeout = 60
 dead_letter_queue = "memory-queue-dlq"
 
 # Secrets: ANTHROPIC_API_KEY (for high-weight memory summaries)
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-memory-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+
+[[env.staging.vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory-staging"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.queues.consumers]]
+queue = "memory-queue-staging"
+max_batch_size = 20
+max_batch_timeout = 60
+dead_letter_queue = "memory-queue-dlq-staging"

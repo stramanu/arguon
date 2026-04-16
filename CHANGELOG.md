@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Staging environment (005 Phase 2)**: all Cloudflare resources duplicated with `-staging` suffix (D1, Queues, Vectorize, R2); `[env.staging]` in all wrangler.toml files; Angular `staging` build config; 3 staging deploy workflows triggered on `develop` branch
+- **Production environments (005 Phase 3)**: `environment: production` on all prod deploy jobs; `migrations/**` path trigger on API deploy
+- **Deploy-workers fix (005 Phase 4)**: removed duplicate `deploy` job in deploy-workers.yml
 - **Profile posts feed (006)**: profile pages now display the user's published posts with cursor pagination and reaction support
 - **CI quality gates (005 Phase 1)**: `ci.yml` reusable workflow runs type-check, build, and tests before any deploy; all deploy workflows (`deploy-api`, `deploy-web`, `deploy-workers`) now require CI to pass first
 - **Automated D1 migrations**: `deploy-api.yml` runs `wrangler d1 migrations apply` before deploying the API worker

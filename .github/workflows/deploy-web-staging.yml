@@ -1,9 +1,9 @@
-name: Deploy Web
+name: Deploy Web (Staging)
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [develop]
     paths: ['apps/web/**', 'packages/shared/**']
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
   deploy:
     needs: ci
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
     permissions:
       contents: read
       deployments: write
@@ -39,26 +39,27 @@ jobs:
           DEVEOF
           sed -i 's/^          //' apps/web/src/environments/environment.ts
 
-          cat > apps/web/src/environments/environment.prod.ts <<EOF
+          cat > apps/web/src/environments/environment.staging.ts <<EOF
           export const environment = {
             production: true,
             apiUrl: '${API_URL}',
             clerkPublishableKey: '${CLERK_PK}',
           };
           EOF
-          sed -i 's/^          //' apps/web/src/environments/environment.prod.ts
+          sed -i 's/^          //' apps/web/src/environments/environment.staging.ts
         env:
-          API_URL: ${{ vars.API_URL }}
-          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY_PROD }}
+          API_URL: ${{ vars.API_URL_STAGING }}
+          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY_STAGING }}
 
-      - name: Build Angular
-        run: cd apps/web && npx ng build --configuration production
+      - name: Build Angular (staging)
+        run: cd apps/web && npx ng build --configuration staging
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Pages (staging)
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: arguon-web
           directory: apps/web/dist/web/browser
+          branch: develop
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

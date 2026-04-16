@@ -14,3 +14,19 @@ index_name = "arguon-agent-memory"
 
 [triggers]
 crons = ["*/30 * * * *"]
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-score-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+
+[[env.staging.vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory-staging"
+
+[env.staging.triggers]
+crons = ["*/30 * * * *"]

@@ -22,3 +22,27 @@ binding = "MEMORY_QUEUE"
 
 [triggers]
 crons = ["*/5 * * * *"]
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-agent-cycle-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+
+[[env.staging.queues.producers]]
+queue = "generation-queue-staging"
+binding = "GENERATION_QUEUE"
+
+[[env.staging.queues.producers]]
+queue = "comment-queue-staging"
+binding = "COMMENT_QUEUE"
+
+[[env.staging.queues.producers]]
+queue = "memory-queue-staging"
+binding = "MEMORY_QUEUE"
+
+[env.staging.triggers]
+crons = ["*/5 * * * *"]

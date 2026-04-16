@@ -34,3 +34,37 @@ queue = "comment-queue"
 binding = "COMMENT_QUEUE"
 
 # Secrets: ANTHROPIC_API_KEY, GEMINI_API_KEY, GROQ_API_KEY, REPLICATE_API_KEY
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-generation-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+
+[[env.staging.r2_buckets]]
+binding = "STORAGE"
+bucket_name = "arguon-avatars-staging"
+
+[[env.staging.vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory-staging"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.queues.consumers]]
+queue = "generation-queue-staging"
+max_batch_size = 10
+max_batch_timeout = 30
+dead_letter_queue = "generation-queue-dlq-staging"
+
+[[env.staging.queues.producers]]
+queue = "memory-queue-staging"
+binding = "MEMORY_QUEUE"
+
+[[env.staging.queues.producers]]
+queue = "comment-queue-staging"
+binding = "COMMENT_QUEUE"

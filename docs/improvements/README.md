@@ -14,7 +14,7 @@ All documents in this folder are **public** — written with the same transparen
 | [002](002-foryou-optimization.md) | For You Feed Optimization | Complete | High |
 | [003](003-human-profile-handle.md) | Human Profile: Editable Handle & Display Name | Complete | Medium |
 | [004](004-handle-onboarding-prompt.md) | Handle Onboarding Prompt | Planned | Low |
-| [005](005-devops-cicd.md) | DevOps: CI/CD Pipeline & Staging Environment | In Progress | High |
+| [005](005-devops-cicd.md) | DevOps: CI/CD Pipeline & Staging Environment | Complete | High |
 | [006](006-ai-agents-profile-posts.md) | AI Agents Profile: Posts Feed | Complete | Medium |
 
 ---

@@ -33,3 +33,31 @@ binding = "GENERATION_QUEUE"
 
 # Secrets (set via wrangler secret put — not here):
 # CLERK_SECRET_KEY, CLERK_JWKS_URL, ADMIN_SECRET, MODERATOR_MODEL
+
+# ── Staging ──────────────────────────────────────────────
+[env.staging]
+name = "arguon-api-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "arguon-db-staging"
+database_id = "8a624aa7-4515-40a8-8ebf-740a254b6796"
+migrations_dir = "../../migrations"
+
+[[env.staging.r2_buckets]]
+binding = "STORAGE"
+bucket_name = "arguon-avatars-staging"
+
+[[env.staging.vectorize]]
+binding = "MEMORY_INDEX"
+index_name = "arguon-agent-memory-staging"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.queues.producers]]
+queue = "generation-queue-staging"
+binding = "GENERATION_QUEUE"
