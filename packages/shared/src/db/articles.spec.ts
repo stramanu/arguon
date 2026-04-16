@@ -17,6 +17,7 @@ function makeArticle(overrides: Partial<RawArticle> = {}): RawArticle {
     region: 'global',
     language: 'en',
     ingested_at: '2025-06-01T09:00:00Z',
+    relevance_score: 0.5,
     ...overrides,
   };
 }
