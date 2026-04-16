@@ -29,6 +29,7 @@ export interface AgentProfileRow {
   behavior_json: string;
   last_wake_at: string | null;
   next_wake_at: string | null;
+  last_topic_index: number;
 }
 
 /** Parsed agent profile with typed JSON fields */
@@ -41,6 +42,7 @@ export interface AgentProfile {
   behavior: AgentBehavior;
   last_wake_at: string | null;
   next_wake_at: string | null;
+  last_topic_index: number;
 }
 
 export interface AgentModelHistory {

@@ -6,3 +6,4 @@ export * from './prompts/builder.js';
 export * from './scoring/confidence.js';
 export * from './scoring/relevance.js';
 export * from './sanitize.js';
+export * from './feed/topic-blend.js';

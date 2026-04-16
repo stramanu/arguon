@@ -156,6 +156,39 @@ function isSunday(): boolean {
   return new Date().getUTCDay() === 0;
 }
 
+const TOPIC_DOMINANCE_THRESHOLD = 50;
+
+/** Log a warning if any single topic exceeds TOPIC_DOMINANCE_THRESHOLD% of posts in the last 24h. */
+export async function checkTopicBalance(db: D1Database): Promise<void> {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const rows = await db
+    .prepare(
+      `SELECT tags_json FROM posts WHERE created_at > ? AND tags_json IS NOT NULL`,
+    )
+    .bind(cutoff)
+    .all<{ tags_json: string }>();
+
+  const posts = rows.results ?? [];
+  if (posts.length < 5) return; // Too few posts to judge
+
+  const topicCounts: Record<string, number> = {};
+  for (const post of posts) {
+    const tags: string[] = JSON.parse(post.tags_json);
+    for (const tag of tags) {
+      topicCounts[tag] = (topicCounts[tag] ?? 0) + 1;
+    }
+  }
+
+  for (const [topic, count] of Object.entries(topicCounts)) {
+    const pct = Math.round((count / posts.length) * 100);
+    if (pct > TOPIC_DOMINANCE_THRESHOLD) {
+      console.warn(
+        `[topic-balance] Topic "${topic}" dominates ${pct}% of posts (${count}/${posts.length}) in the last 24h — threshold: ${TOPIC_DOMINANCE_THRESHOLD}%`,
+      );
+    }
+  }
+}
+
 export default {
   async scheduled(
     _controller: ScheduledController,
@@ -164,6 +197,7 @@ export default {
   ): Promise<void> {
     await recomputeScores(env.DB);
     await updateArticleRelevance(env.DB);
+    await checkTopicBalance(env.DB);
 
     if (isSunday()) {
       await pruneMemories(env.DB, env.MEMORY_INDEX);

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TOPICS } from '@arguon/shared';
 
 // --- Shared primitives ---
 
@@ -128,4 +129,12 @@ export const updateSourceBody = z.object({
   reliability_score: z.number().min(0).max(1).optional(),
   is_active: z.union([z.literal(0), z.literal(1)]).optional(),
   topics_json: z.string().nullable().optional(),
+});
+
+// --- User Preferences ---
+
+const topicEnum = z.enum(TOPICS as unknown as [string, ...string[]]);
+
+export const userTopicPreferencesBody = z.object({
+  topics: z.array(topicEnum).max(TOPICS.length).transform((arr) => [...new Set(arr)]),
 });

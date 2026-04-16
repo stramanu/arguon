@@ -57,6 +57,7 @@ export async function getRecentArticles(
   options: {
     limit?: number;
     topic?: string;
+    primaryTopicOnly?: boolean;
     language?: string;
     excludeAgentPostedIds?: string[];
     excludeAllPosted?: boolean;
@@ -67,8 +68,14 @@ export async function getRecentArticles(
   const values: unknown[] = [];
 
   if (options.topic) {
-    conditions.push("topics_json LIKE ?");
-    values.push(`%${options.topic}%`);
+    if (options.primaryTopicOnly) {
+      // Match only if the topic is the first element in the JSON array
+      conditions.push("topics_json LIKE ?");
+      values.push(`["${options.topic}"%`);
+    } else {
+      conditions.push("topics_json LIKE ?");
+      values.push(`%${options.topic}%`);
+    }
   }
 
   if (options.language) {
@@ -92,7 +99,19 @@ export async function getRecentArticles(
   values.push(limit);
 
   const rows = await db
-    .prepare(`SELECT * FROM raw_articles ${where} ORDER BY relevance_score DESC, ingested_at DESC LIMIT ?`)
+    .prepare(
+      `SELECT * FROM raw_articles ${where}
+       ORDER BY
+         relevance_score
+         + CASE
+             WHEN ingested_at > datetime('now', '-1 hour') THEN 10
+             WHEN ingested_at > datetime('now', '-6 hours') THEN 5
+             ELSE 0
+           END
+         DESC,
+         ingested_at DESC
+       LIMIT ?`,
+    )
     .bind(...values)
     .all<RawArticle>();
   return rows.results ?? [];

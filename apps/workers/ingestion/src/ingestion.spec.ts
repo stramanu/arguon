@@ -13,6 +13,8 @@ import {
 } from '@arguon/shared';
 
 describe('topic-tagger', () => {
+  // --- Basic topic detection ---
+
   it('detects technology topic', () => {
     const topics = tagTopics('New AI breakthrough transforms software industry', null);
     expect(topics).toContain('technology');
@@ -28,7 +30,7 @@ describe('topic-tagger', () => {
 
   it('returns max 3 topics', () => {
     const topics = tagTopics(
-      'Government economic climate health sports technology science',
+      'Climate health sports technology science economy',
       'war protest art streaming nasa vaccine stock market',
     );
     expect(topics.length).toBeLessThanOrEqual(3);
@@ -37,6 +39,133 @@ describe('topic-tagger', () => {
   it('returns empty array for unrelated content', () => {
     const topics = tagTopics('Lorem ipsum dolor sit amet', null);
     expect(topics).toEqual([]);
+  });
+
+  // --- Title weighting (3× vs 1×) ---
+
+  it('prioritizes title matches over content matches', () => {
+    const topics = tagTopics(
+      'NASA discovers new asteroid near Mars',
+      'The stock market reacted to inflation data and trade policy updates from the fed',
+    );
+    expect(topics[0]).toBe('science');
+  });
+
+  it('title keyword alone outweighs multiple content keywords', () => {
+    const topics = tagTopics(
+      'New vaccine approved for cancer treatment',
+      'The tech startup announced a software algorithm for cloud data processing',
+    );
+    // health has 3 title matches (vaccine, cancer, treatment) = 9 pts
+    // technology has 5 content matches (tech, startup, software, algorithm, cloud) = 5 pts
+    expect(topics[0]).toBe('health');
+  });
+
+  // --- Primary topic is always index 0 ---
+
+  it('returns primary topic (highest score) as first element', () => {
+    const topics = tagTopics(
+      'Olympic basketball tournament breaks records',
+      'The league match had a record number of goals',
+    );
+    expect(topics[0]).toBe('sports');
+  });
+
+  // --- Geopolitics keyword refinement (no cross-contamination) ---
+
+  it('does not tag tech policy as geopolitics when no geopolitics keywords present', () => {
+    const topics = tagTopics(
+      'Tech companies face new digital regulation',
+      'Software industry adapts to algorithm transparency requirements',
+    );
+    expect(topics).toContain('technology');
+    expect(topics).not.toContain('geopolitics');
+  });
+
+  it('does not tag health regulation as geopolitics', () => {
+    const topics = tagTopics(
+      'New public health policy announced for vaccine distribution',
+      'Hospital systems prepare for the upcoming outbreak season',
+    );
+    expect(topics[0]).toBe('health');
+    expect(topics).not.toContain('geopolitics');
+  });
+
+  it('correctly tags actual geopolitics articles', () => {
+    const topics = tagTopics(
+      'NATO deploys military forces amid border conflict',
+      'Diplomacy efforts stall as sanctions are expanded',
+    );
+    expect(topics[0]).toBe('geopolitics');
+  });
+
+  it('tags war and invasion as geopolitics, not something else', () => {
+    const topics = tagTopics(
+      'Ceasefire collapses as invasion resumes in occupied territory',
+      null,
+    );
+    expect(topics).toContain('geopolitics');
+  });
+
+  // --- Edge cases: cross-domain articles ---
+
+  it('tags a tech economy article correctly', () => {
+    const topics = tagTopics(
+      'AI startup raises record investment on Wall Street',
+      'The semiconductor company saw its stock surge after the algorithm breakthrough',
+    );
+    expect(topics).toContain('technology');
+    expect(topics).toContain('economy');
+  });
+
+  it('tags environment + science article correctly', () => {
+    const topics = tagTopics(
+      'Climate research reveals glacier melting accelerates',
+      'New study uses telescope data to track carbon emissions and biodiversity loss',
+    );
+    expect(topics).toContain('environment');
+    expect(topics).toContain('science');
+  });
+
+  it('tags sports article without economy leaking in', () => {
+    const topics = tagTopics(
+      'FIFA World Cup final draws record viewership',
+      'The tournament champion celebrated after the match with fans at the stadium',
+    );
+    expect(topics[0]).toBe('sports');
+    expect(topics).not.toContain('economy');
+  });
+
+  it('tags entertainment article correctly', () => {
+    const topics = tagTopics(
+      'Netflix series breaks streaming records globally',
+      'The celebrity-studded show had gaming and podcast tie-ins on YouTube',
+    );
+    expect(topics[0]).toBe('entertainment');
+  });
+
+  // --- Null/empty content handling ---
+
+  it('works with null content', () => {
+    const topics = tagTopics('Mars research discovery by NASA', null);
+    expect(topics).toContain('science');
+  });
+
+  it('works with empty content', () => {
+    const topics = tagTopics('Olympic champion wins basketball gold', '');
+    expect(topics).toContain('sports');
+  });
+
+  // --- Content truncation (only first 200 chars) ---
+
+  it('ignores content beyond 200 characters', () => {
+    const padding = 'x'.repeat(200);
+    const topics = tagTopics(
+      'Generic news headline with no keywords',
+      padding + ' war conflict military nato invasion',
+    );
+    // geopolitics keywords are beyond 200 chars, should not be detected
+    expect(topics).not.toContain('geopolitics');
   });
 });
 

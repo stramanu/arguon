@@ -27,3 +27,5 @@ export type { NewsSource, RawArticle } from './news.js';
 export type { DailyBudget } from './budget.js';
 export type { NotificationType, Notification } from './notification.js';
 export type { ModerationLog, DlqEntry } from './moderation.js';
+export { TOPICS } from './topics.js';
+export type { Topic } from './topics.js';

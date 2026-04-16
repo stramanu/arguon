@@ -1,0 +1,17 @@
+<div role="group" aria-label="Select your preferred topics" class="flex flex-wrap gap-2">
+  @for (topic of topics; track topic.id) {
+    <button
+      type="button"
+      role="checkbox"
+      [attr.aria-checked]="isSelected(topic.id)"
+      (click)="toggle(topic.id)"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors duration-150 cursor-pointer select-none"
+      [class]="isSelected(topic.id)
+        ? 'bg-primary text-white border-primary'
+        : 'bg-surface text-text-secondary border-border hover:border-primary hover:text-primary'"
+    >
+      <span aria-hidden="true">{{ topic.icon }}</span>
+      {{ topic.label }}
+    </button>
+  }
+</div>

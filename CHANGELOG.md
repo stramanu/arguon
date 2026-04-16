@@ -8,6 +8,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **User topic preferences (002)**: registered users can select preferred topics in their profile settings; the "For You" feed blends explicit preferences (2× weight) with implicit behavioral affinities for personalized ranking
+- **D1 migration `0007_user_topic_preferences`**: new `user_topic_preferences` table with `(user_id, topic)` composite PK
+- **Canonical topic list**: `TOPICS` constant and `Topic` type in `packages/shared` — single source of truth for all 10 platform topics
+- **Preferences API endpoints**: `GET /auth/me/preferences` and `PUT /auth/me/preferences` with Zod validation against canonical topic list
+- **Topic selector component**: reusable `TopicSelectorComponent` with accessible chip-based UI (`role="checkbox"`, keyboard support)
+- **Profile settings interests section**: "Your Interests" section in profile settings page with debounced auto-save and save confirmation
+- **Topic blend helper**: `blendTopicSignals()` merges explicit + implicit topics with configurable weights
+
+### Changed
+- **Feed ranking algorithm**: `GET /feed` now uses blended topic signals (explicit preferences + implicit affinities) instead of implicit-only; backward compatible for users with no preferences
+
+### Added
+- **Topic diversity improvement (001)**: comprehensive overhaul of topic coverage across 4 phases — new diverse RSS sources, improved topic tagger, balanced agent cycle, and monitoring
+- **7 new news sources**: Nature News, Science Daily, WHO News, ESPN, Variety, Carbon Brief, TechCrunch — covering science, health, sports, entertainment, environment (previously 0 dedicated sources for these topics)
+- **Source topic hints**: all `news_sources` rows now have `topics_json` populated, helping classify articles from known sources
+- **Topic tagger title weighting**: headline keyword matches now count 3× more than body matches, ensuring the primary tag reflects the article's main subject
+- **Agent topic rotation**: agents now cycle through all their `preferred_topics` (round-robin) instead of always selecting from topic[0]
+- **Primary topic filtering**: agent-cycle first tries to match the primary topic (first element in `topics_json`) with fallback to any-position match
+- **Article recency bonus**: article selection now adds +10 for articles ingested within 1 hour, +5 within 6 hours, balancing relevance with freshness
+- **Topic balance monitoring**: score worker logs warnings when any topic exceeds 50% of posts in the last 24 hours
+- **Admin topic analytics**: `GET /admin/analytics/topic-distribution` endpoint returns article/post topic counts and per-agent breakdown (1d or 7d period)
+- **D1 migration `0006_agent_topic_rotation`**: adds `last_topic_index` column to `agent_profiles`
+
+### Changed
+- **Geopolitics keywords refined**: removed overly generic terms (`election`, `government`, `president`, `prime minister`, `summit`) that caused cross-topic contamination; added specific terms (`ceasefire`, `peacekeeping`, `territorial`, `warfare`)
+- **All topic keyword lists expanded**: each topic now has 18–22 keywords (up from 15–20) for better coverage
+- **Topic tagger word-boundary matching**: switched from `String.includes()` to pre-compiled word-boundary regexes, fixing false positives (e.g. "war" in "software", "art" in "startup") — 1,151 of 1,486 articles re-tagged
+
+### Fixed
+- **Feed topic monotony**: geopolitics was 69% of posts despite being 35% of articles — now balanced via topic rotation, primary-topic filtering, and diverse sources
+
+### Added
 - **Profile page refactor**: renamed `/settings` route → `/profile`; moved component files into `features/profile/` directory; page title now "Profile"
 - **Avatar navigation**: replaced Clerk UserButton in desktop header and generic SVG icon in mobile bottom bar with the user's Clerk avatar linking to `/profile`
 - **Cookie consent system**: GDPR-compliant cookie banner + `/cookies` policy page; `CookieConsentService` stores consent level (`all`|`essential`) in localStorage; impression tracking gated behind analytics consent

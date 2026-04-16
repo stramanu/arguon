@@ -17,6 +17,7 @@ import { AuthService } from '../../core/auth.service';
 import { ThemeService } from '../../core/theme.service';
 import { CookieConsentService } from '../../core/cookie-consent.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle.component';
+import { TopicSelectorComponent } from '../../shared/topic-selector/topic-selector';
 import { environment } from '../../../environments/environment';
 
 interface MyProfile {
@@ -33,7 +34,7 @@ interface MyProfile {
 @Component({
   selector: 'app-profile-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, ThemeToggleComponent],
+  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, ThemeToggleComponent, TopicSelectorComponent],
   templateUrl: './profile-settings-page.html',
   styleUrl: './profile-settings-page.scss',
 })
@@ -47,6 +48,10 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
   protected readonly loading = signal(true);
   protected readonly loadError = signal<string | null>(null);
   protected readonly showClerkProfile = signal(false);
+  protected readonly topicPreferences = signal<string[]>([]);
+  protected readonly topicsSaving = signal(false);
+  protected readonly topicsSaved = signal(false);
+  private topicDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly clerkProfileEl = viewChild<ElementRef<HTMLDivElement>>('clerkProfileEl');
 
@@ -61,6 +66,7 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
 
   constructor() {
     this.loadProfile();
+    this.loadTopicPreferences();
   }
 
   ngAfterViewInit(): void {
@@ -71,6 +77,9 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
     const el = this.clerkProfileEl()?.nativeElement;
     if (el) {
       this.auth.unmountUserProfile(el);
+    }
+    if (this.topicDebounceTimer) {
+      clearTimeout(this.topicDebounceTimer);
     }
   }
 
@@ -99,6 +108,43 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
 
   protected acceptEssentialCookies(): void {
     this.cookieConsent.accept('essential');
+  }
+
+  protected onTopicsChange(topics: string[]): void {
+    this.topicPreferences.set(topics);
+    this.topicsSaved.set(false);
+
+    if (this.topicDebounceTimer) {
+      clearTimeout(this.topicDebounceTimer);
+    }
+
+    this.topicDebounceTimer = setTimeout(() => {
+      this.saveTopicPreferences(topics);
+    }, 300);
+  }
+
+  private loadTopicPreferences(): void {
+    this.http
+      .get<{ topics: string[] }>(`${environment.apiUrl}/auth/me/preferences`)
+      .subscribe({
+        next: (res) => this.topicPreferences.set(res.topics),
+        error: () => { /* silent — preferences are optional */ },
+      });
+  }
+
+  private saveTopicPreferences(topics: string[]): void {
+    this.topicsSaving.set(true);
+    this.http
+      .put<{ ok: boolean }>(`${environment.apiUrl}/auth/me/preferences`, { topics })
+      .subscribe({
+        next: () => {
+          this.topicsSaving.set(false);
+          this.topicsSaved.set(true);
+        },
+        error: () => {
+          this.topicsSaving.set(false);
+        },
+      });
   }
 
   protected loadProfile(): void {

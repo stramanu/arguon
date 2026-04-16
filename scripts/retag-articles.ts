@@ -1,3 +1,14 @@
+/**
+ * One-time script to re-tag all existing raw_articles using the updated topic tagger.
+ * Run with: npx tsx scripts/retag-articles.ts
+ *
+ * Fetches articles from production D1 via wrangler, re-computes topics_json
+ * with the word-boundary-aware tagger, and writes updates back in batches.
+ */
+import { execSync } from 'node:child_process';
+
+// ── Inline tagger (mirrors apps/workers/ingestion/src/topic-tagger.ts) ──
+
 const TOPIC_KEYWORDS: Record<string, string[]> = {
   technology: [
     'tech', 'software', 'ai', 'artificial intelligence', 'robot', 'cyber',
@@ -58,7 +69,6 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
   ],
 };
 
-/** Pre-compiled word-boundary regexes to avoid substring false positives. */
 const TOPIC_REGEXES: Record<string, RegExp[]> = Object.fromEntries(
   Object.entries(TOPIC_KEYWORDS).map(([topic, keywords]) => [
     topic,
@@ -66,16 +76,11 @@ const TOPIC_REGEXES: Record<string, RegExp[]> = Object.fromEntries(
   ]),
 );
 
-/** Title matches are weighted 3x more than content matches. */
 const TITLE_WEIGHT = 3;
 const CONTENT_WEIGHT = 1;
 const MAX_TOPICS = 3;
 
-/**
- * Tag an article with up to MAX_TOPICS topics.
- * The first element in the returned array is always the primary topic (highest score).
- */
-export function tagTopics(title: string, content: string | null): string[] {
+function tagTopics(title: string, content: string | null): string[] {
   const titleLower = title.toLowerCase();
   const contentLower = (content ?? '').slice(0, 200).toLowerCase();
 
@@ -84,12 +89,8 @@ export function tagTopics(title: string, content: string | null): string[] {
   for (const [topic, regexes] of Object.entries(TOPIC_REGEXES)) {
     let score = 0;
     for (const regex of regexes) {
-      if (regex.test(titleLower)) {
-        score += TITLE_WEIGHT;
-      }
-      if (regex.test(contentLower)) {
-        score += CONTENT_WEIGHT;
-      }
+      if (regex.test(titleLower)) score += TITLE_WEIGHT;
+      if (regex.test(contentLower)) score += CONTENT_WEIGHT;
     }
     if (score > 0) {
       scores.push({ topic, score });
@@ -101,3 +102,84 @@ export function tagTopics(title: string, content: string | null): string[] {
     .slice(0, MAX_TOPICS)
     .map((s) => s.topic);
 }
+
+// ── Main script ──
+
+interface Article {
+  id: string;
+  title: string;
+  content: string | null;
+  topics_json: string | null;
+}
+
+function d1Query(sql: string): Article[] {
+  const escaped = sql.replace(/'/g, "'\\''");
+  const out = execSync(
+    `npx wrangler d1 execute arguon-db --remote --command '${escaped}' --json`,
+    { encoding: 'utf-8', maxBuffer: 50 * 1024 * 1024 },
+  );
+  const parsed = JSON.parse(out);
+  return parsed[0]?.results ?? [];
+}
+
+function d1Execute(sql: string): void {
+  const escaped = sql.replace(/'/g, "'\\''");
+  execSync(
+    `npx wrangler d1 execute arguon-db --remote --command '${escaped}'`,
+    { encoding: 'utf-8', stdio: 'pipe' },
+  );
+}
+
+async function main() {
+  console.log('Fetching all articles from production D1...');
+  const articles = d1Query('SELECT id, title, content, topics_json FROM raw_articles');
+  console.log(`Found ${articles.length} articles to re-tag.`);
+
+  let changed = 0;
+  let unchanged = 0;
+  const BATCH_SIZE = 50;
+  const updates: Array<{ id: string; newTopics: string }> = [];
+
+  for (const article of articles) {
+    const newTopics = tagTopics(article.title, article.content);
+    const newJson = JSON.stringify(newTopics);
+    const oldJson = article.topics_json ?? '[]';
+
+    if (newJson !== oldJson) {
+      updates.push({ id: article.id, newTopics: newJson });
+      changed++;
+    } else {
+      unchanged++;
+    }
+  }
+
+  console.log(`\nResults: ${changed} changed, ${unchanged} unchanged.`);
+
+  if (updates.length === 0) {
+    console.log('Nothing to update.');
+    return;
+  }
+
+  console.log(`\nApplying ${updates.length} updates in batches of ${BATCH_SIZE}...`);
+
+  for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+    const batch = updates.slice(i, i + BATCH_SIZE);
+    const stmts = batch.map(({ id, newTopics }) => {
+      const safeTopics = newTopics.replace(/'/g, "''");
+      const safeId = id.replace(/'/g, "''");
+      return `UPDATE raw_articles SET topics_json = '${safeTopics}' WHERE id = '${safeId}';`;
+    });
+    const sql = stmts.join(' ');
+
+    try {
+      d1Execute(sql);
+      console.log(`  Batch ${Math.floor(i / BATCH_SIZE) + 1}: updated ${batch.length} articles`);
+    } catch (err) {
+      console.error(`  Batch ${Math.floor(i / BATCH_SIZE) + 1} FAILED:`, err);
+    }
+  }
+
+  console.log('\nDone! All articles re-tagged.');
+}
+
+main().catch(console.error);

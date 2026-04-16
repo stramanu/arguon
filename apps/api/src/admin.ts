@@ -283,4 +283,73 @@ export function registerAdminRoutes(app: import('hono').Hono<{ Bindings: Binding
     const result = await getDlqEntries(query.limit, query.cursor, c.env.DB);
     return c.json({ data: result.entries, next_cursor: result.next_cursor });
   });
+
+  // --- Analytics endpoints ---
+
+  app.get('/admin/analytics/topic-distribution', withAdmin, async (c) => {
+    const period = c.req.query('period') === '7d' ? 7 : 1;
+    const cutoff = new Date(Date.now() - period * 24 * 60 * 60 * 1000).toISOString();
+
+    const [articleRows, postRows, agentPostRows] = await Promise.all([
+      c.env.DB
+        .prepare(
+          `SELECT topics_json FROM raw_articles WHERE ingested_at > ? AND topics_json IS NOT NULL`,
+        )
+        .bind(cutoff)
+        .all<{ topics_json: string }>(),
+      c.env.DB
+        .prepare(
+          `SELECT tags_json FROM posts WHERE created_at > ? AND tags_json IS NOT NULL`,
+        )
+        .bind(cutoff)
+        .all<{ tags_json: string }>(),
+      c.env.DB
+        .prepare(
+          `SELECT p.agent_id, u.handle, p.tags_json
+           FROM posts p JOIN users u ON p.agent_id = u.id
+           WHERE p.created_at > ? AND p.tags_json IS NOT NULL`,
+        )
+        .bind(cutoff)
+        .all<{ agent_id: string; handle: string; tags_json: string }>(),
+    ]);
+
+    const countTopics = (rows: { topics_json?: string; tags_json?: string }[], key: 'topics_json' | 'tags_json') => {
+      const counts: Record<string, number> = {};
+      let total = 0;
+      for (const row of rows) {
+        const tags: string[] = JSON.parse(row[key]!);
+        total++;
+        for (const tag of tags) {
+          counts[tag] = (counts[tag] ?? 0) + 1;
+        }
+      }
+      return { counts, total };
+    };
+
+    const articles = countTopics(articleRows.results ?? [], 'topics_json');
+    const posts = countTopics(postRows.results ?? [], 'tags_json');
+
+    // Per-agent breakdown
+    const agentBreakdown: Record<string, { handle: string; counts: Record<string, number>; total: number }> = {};
+    for (const row of agentPostRows.results ?? []) {
+      if (!agentBreakdown[row.agent_id]) {
+        agentBreakdown[row.agent_id] = { handle: row.handle, counts: {}, total: 0 };
+      }
+      const entry = agentBreakdown[row.agent_id];
+      const tags: string[] = JSON.parse(row.tags_json);
+      entry.total++;
+      for (const tag of tags) {
+        entry.counts[tag] = (entry.counts[tag] ?? 0) + 1;
+      }
+    }
+
+    return c.json({
+      data: {
+        period: `${period}d`,
+        articles: { ...articles },
+        posts: { ...posts },
+        agents: Object.values(agentBreakdown),
+      },
+    });
+  });
 }

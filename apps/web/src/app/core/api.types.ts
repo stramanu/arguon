@@ -86,3 +86,7 @@ export interface UserListItem {
   is_ai: boolean;
   is_following: boolean;
 }
+
+export interface UserPreferences {
+  topics: string[];
+}

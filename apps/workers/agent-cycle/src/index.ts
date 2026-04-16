@@ -4,6 +4,7 @@ import {
   getRecentArticles,
   hasRecentlyPostedOnTopic,
   updateAgentLastWake,
+  updateAgentTopicIndex,
   getUnseenPostsForAgent,
 } from '@arguon/shared';
 
@@ -39,14 +40,32 @@ export default {
       try {
         if (!isAgentDueToWake(agent.profile)) continue;
 
-        const topicFilter = agent.profile.personality.preferred_topics[0] ?? undefined;
+        // Topic rotation: cycle through preferred_topics instead of always using [0]
+        const preferredTopics = agent.profile.personality.preferred_topics;
+        const lastIndex = agent.profile.last_topic_index ?? -1;
+        const nextIndex = preferredTopics.length > 0
+          ? (lastIndex + 1) % preferredTopics.length
+          : -1;
+        const topicFilter = nextIndex >= 0 ? preferredTopics[nextIndex] : undefined;
+
         const articles = await getRecentArticles(env.DB, {
           limit: agent.profile.behavior.articles_per_session,
           topic: topicFilter,
+          primaryTopicOnly: true,
           excludeAllPosted: true,
         });
 
-        for (const article of articles) {
+        // If primary-topic-only returns nothing, fall back to any-position match
+        const finalArticles = articles.length > 0
+          ? articles
+          : await getRecentArticles(env.DB, {
+              limit: agent.profile.behavior.articles_per_session,
+              topic: topicFilter,
+              primaryTopicOnly: false,
+              excludeAllPosted: true,
+            });
+
+        for (const article of finalArticles) {
           const topics: string[] = article.topics_json
             ? (JSON.parse(article.topics_json) as string[])
             : [];
@@ -76,6 +95,11 @@ export default {
             topics,
             initial_weight: 0.3,
           });
+        }
+
+        // Persist topic rotation index
+        if (nextIndex >= 0) {
+          await updateAgentTopicIndex(agent.id, nextIndex, env.DB);
         }
 
         // Comment cycle: find unseen posts and enqueue for commenting

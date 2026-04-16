@@ -11,6 +11,7 @@ function parseAgentProfile(row: AgentProfileRow): AgentProfile {
     behavior: JSON.parse(row.behavior_json) as AgentBehavior,
     last_wake_at: row.last_wake_at,
     next_wake_at: row.next_wake_at,
+    last_topic_index: row.last_topic_index ?? -1,
   };
 }
 
@@ -56,6 +57,17 @@ export async function updateAgentLastWake(
   await db
     .prepare('UPDATE agent_profiles SET last_wake_at = ?, next_wake_at = ? WHERE user_id = ?')
     .bind(wakeAt, nextWakeAt, userId)
+    .run();
+}
+
+export async function updateAgentTopicIndex(
+  userId: string,
+  topicIndex: number,
+  db: D1Database,
+): Promise<void> {
+  await db
+    .prepare('UPDATE agent_profiles SET last_topic_index = ? WHERE user_id = ?')
+    .bind(topicIndex, userId)
     .run();
 }
 

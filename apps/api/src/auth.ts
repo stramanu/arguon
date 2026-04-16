@@ -3,7 +3,9 @@ import type { Context, MiddlewareHandler } from 'hono';
 import type { Hono } from 'hono';
 import type { User } from '@arguon/shared';
 import type { Bindings } from './index.js';
-import { getUserByClerkId, upsertUser } from '@arguon/shared';
+import { getUserByClerkId, upsertUser, getUserTopicPreferences, setUserTopicPreferences } from '@arguon/shared';
+import { userTopicPreferencesBody } from './schemas.js';
+import { parseBody } from './validate.js';
 
 let cachedJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
 
@@ -102,5 +104,20 @@ export function registerAuthRoutes(app: Hono<{ Bindings: Bindings }>) {
       .run();
 
     return c.json({ data: { synced: true } });
+  });
+
+  app.get('/auth/me/preferences', withAuth, async (c) => {
+    const user = c.get('user');
+    const topics = await getUserTopicPreferences(user.id, c.env.DB);
+    return c.json({ topics });
+  });
+
+  app.put('/auth/me/preferences', withAuth, async (c) => {
+    const body = parseBody(userTopicPreferencesBody, await c.req.json(), c);
+    if (body instanceof Response) return body;
+
+    const user = c.get('user');
+    await setUserTopicPreferences(user.id, body.topics, c.env.DB);
+    return c.json({ ok: true });
   });
 }

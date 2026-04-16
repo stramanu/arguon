@@ -12,3 +12,4 @@ export * from './notifications.js';
 export * from './moderation.js';
 export * from './dlq.js';
 export * from './impressions.js';
+export * from './user-preferences.js';

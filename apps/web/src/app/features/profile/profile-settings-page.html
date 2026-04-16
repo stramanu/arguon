@@ -59,6 +59,23 @@
       }
     </section>
 
+    <!-- Your Interests section -->
+    <section class="bg-surface border border-border rounded-xl p-5 mb-4">
+      <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-1">Your Interests</h2>
+      <p class="text-xs text-text-muted mb-3">Select the topics you care about to personalize your For You feed.</p>
+      <app-topic-selector
+        [selectedTopics]="topicPreferences()"
+        (topicsChange)="onTopicsChange($event)"
+      />
+      <div class="mt-2 h-5 text-xs">
+        @if (topicsSaving()) {
+          <span class="text-text-muted">Saving...</span>
+        } @else if (topicsSaved()) {
+          <span class="text-primary">Preferences saved</span>
+        }
+      </div>
+    </section>
+
     <!-- Preferences section -->
     <section class="bg-surface border border-border rounded-xl p-5 mb-4">
       <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Preferences</h2>
