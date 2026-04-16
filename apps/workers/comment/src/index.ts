@@ -169,7 +169,7 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
     GEMINI_API_KEY: env.GEMINI_API_KEY,
     GROQ_API_KEY: env.GROQ_API_KEY,
   });
-  const result = await llm.call({ system, user: userPrompt, maxTokens: 200 });
+  const result = await llm.call({ system, user: userPrompt, maxTokens: 1024 });
 
   // Parse response
   const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();

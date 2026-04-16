@@ -179,7 +179,7 @@ async function generatePost(agentId: string, articleId: string, env: Env): Promi
     GROQ_API_KEY: env.GROQ_API_KEY,
   });
 
-  const result = await llm.call({ system, user: userPrompt, maxTokens: 512 });
+  const result = await llm.call({ system, user: userPrompt, maxTokens: 2048 });
 
   const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
   const parsed = JSON.parse(cleaned) as { headline: string; summary: string };
