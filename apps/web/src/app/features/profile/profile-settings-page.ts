@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avatar';
 import { NgpButton } from 'ng-primitives/button';
 import { AuthService } from '../../core/auth.service';
@@ -34,7 +35,7 @@ interface MyProfile {
 @Component({
   selector: 'app-profile-settings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, ThemeToggleComponent, TopicSelectorComponent],
+  imports: [RouterLink, FormsModule, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, ThemeToggleComponent, TopicSelectorComponent],
   templateUrl: './profile-settings-page.html',
   styleUrl: './profile-settings-page.scss',
 })
@@ -53,6 +54,18 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
   protected readonly topicsSaving = signal(false);
   protected readonly topicsSaved = signal(false);
   private topicDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private handleCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Profile edit state
+  protected readonly editingProfile = signal(false);
+  protected readonly editHandle = signal('');
+  protected readonly editName = signal('');
+  protected readonly handleAvailable = signal<boolean | null>(null);
+  protected readonly handleChecking = signal(false);
+  protected readonly handleError = signal<string | null>(null);
+  protected readonly profileSaving = signal(false);
+  protected readonly profileSaved = signal(false);
+  protected readonly profileSaveError = signal<string | null>(null);
 
   private readonly clerkProfileEl = viewChild<ElementRef<HTMLDivElement>>('clerkProfileEl');
 
@@ -82,6 +95,9 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
     if (this.topicDebounceTimer) {
       clearTimeout(this.topicDebounceTimer);
     }
+    if (this.handleCheckTimer) {
+      clearTimeout(this.handleCheckTimer);
+    }
   }
 
   protected toggleClerkProfile(): void {
@@ -106,6 +122,113 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
   protected async signOut(): Promise<void> {
     await this.auth.signOut();
     this.router.navigateByUrl('/');
+  }
+
+  protected startEditProfile(): void {
+    const p = this.profile();
+    if (!p) return;
+    this.editHandle.set(p.handle);
+    this.editName.set(p.name);
+    this.handleAvailable.set(null);
+    this.handleError.set(null);
+    this.profileSaveError.set(null);
+    this.profileSaved.set(false);
+    this.editingProfile.set(true);
+  }
+
+  protected cancelEditProfile(): void {
+    this.editingProfile.set(false);
+    if (this.handleCheckTimer) {
+      clearTimeout(this.handleCheckTimer);
+      this.handleCheckTimer = null;
+    }
+  }
+
+  protected onHandleInput(value: string): void {
+    const normalized = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    this.editHandle.set(normalized);
+    this.handleAvailable.set(null);
+    this.handleError.set(null);
+
+    if (this.handleCheckTimer) {
+      clearTimeout(this.handleCheckTimer);
+    }
+
+    if (normalized.length < 3) {
+      this.handleError.set('Handle must be at least 3 characters');
+      return;
+    }
+
+    if (!/^[a-z]/.test(normalized)) {
+      this.handleError.set('Must start with a letter');
+      return;
+    }
+
+    if (normalized === this.profile()?.handle) {
+      this.handleAvailable.set(true);
+      return;
+    }
+
+    this.handleChecking.set(true);
+    this.handleCheckTimer = setTimeout(() => {
+      this.http
+        .get<{ available: boolean }>(`${environment.apiUrl}/auth/handle-available?handle=${encodeURIComponent(normalized)}`)
+        .subscribe({
+          next: (res) => {
+            this.handleAvailable.set(res.available);
+            if (!res.available) {
+              this.handleError.set('This handle is already taken');
+            }
+            this.handleChecking.set(false);
+          },
+          error: (err) => {
+            const msg = err?.error?.error?.message ?? 'Could not check availability';
+            this.handleError.set(msg);
+            this.handleChecking.set(false);
+          },
+        });
+    }, 300);
+  }
+
+  protected saveProfile(): void {
+    const p = this.profile();
+    if (!p) return;
+
+    const handle = this.editHandle();
+    const name = this.editName().trim();
+
+    if (!name) {
+      this.profileSaveError.set('Name is required');
+      return;
+    }
+
+    const body: Record<string, string> = {};
+    if (handle !== p.handle) body['handle'] = handle;
+    if (name !== p.name) body['name'] = name;
+
+    if (Object.keys(body).length === 0) {
+      this.editingProfile.set(false);
+      return;
+    }
+
+    this.profileSaving.set(true);
+    this.profileSaveError.set(null);
+
+    this.http
+      .patch<{ data: { handle: string; name: string } }>(`${environment.apiUrl}/auth/me`, body)
+      .subscribe({
+        next: (res) => {
+          this.profile.update((prev) => prev ? { ...prev, handle: res.data.handle, name: res.data.name } : prev);
+          this.profileSaving.set(false);
+          this.profileSaved.set(true);
+          this.editingProfile.set(false);
+        },
+        error: (err) => {
+          const msg = err?.error?.error?.message ?? 'Could not save profile';
+          this.profileSaveError.set(msg);
+          this.profileSaving.set(false);
+        },
+      });
   }
 
   protected acceptAllCookies(): void {

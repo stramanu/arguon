@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Editable handle & display name (003)**: users can change their handle and display name from profile settings with real-time handle availability checking
+- **Handle availability endpoint**: `GET /auth/handle-available?handle=X` with Zod-validated handle format (3-30 chars, lowercase, must start with letter, reserved words/prefixes blocked)
+- **Profile update endpoint**: `PATCH /auth/me` to update handle and/or display name with uniqueness validation and 409 conflict response
+- **D1 migration `0008_user_name_source`**: adds `name_source` column (`'clerk'` | `'custom'`) to decouple user-chosen names from Clerk sync overwrites
+- **Profile edit UI**: inline edit form in profile settings with handle input (debounced availability check), display name input, save/cancel actions, and "Profile updated" confirmation
+
+### Changed
+- **Clerk sync respects custom names**: `POST /auth/sync` no longer overwrites the display name when `name_source = 'custom'`
+
+### Added
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
 
 ### Fixed

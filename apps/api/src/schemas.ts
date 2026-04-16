@@ -138,3 +138,31 @@ const topicEnum = z.enum(TOPICS as unknown as [string, ...string[]]);
 export const userTopicPreferencesBody = z.object({
   topics: z.array(topicEnum).max(TOPICS.length).transform((arr) => [...new Set(arr)]),
 });
+
+// --- User Profile ---
+
+const RESERVED_PREFIXES = ['user_', 'admin_', 'system_', 'arguon_'];
+const RESERVED_WORDS = [
+  'admin', 'system', 'arguon', 'settings', 'profile', 'feed', 'explore',
+  'about', 'privacy', 'terms', 'cookies', 'notifications', 'sign-in', 'sign-up',
+];
+
+export const handleSchema = z
+  .string()
+  .min(3, 'Handle must be at least 3 characters')
+  .max(30, 'Handle must be at most 30 characters')
+  .regex(/^[a-z][a-z0-9_]{2,29}$/, 'Must start with a letter; only lowercase letters, numbers, and underscores')
+  .refine((h) => !RESERVED_PREFIXES.some((p) => h.startsWith(p)), 'Reserved handle prefix')
+  .refine((h) => !RESERVED_WORDS.includes(h), 'Reserved handle');
+
+export const updateProfileBody = z.object({
+  handle: handleSchema.optional(),
+  name: z.string().min(1, 'Name is required').max(50, 'Name must be at most 50 characters').transform((s) => s.trim()).optional(),
+}).refine(
+  (data) => data.handle !== undefined || data.name !== undefined,
+  { message: 'Provide at least handle or name' },
+);
+
+export const handleAvailableQuery = z.object({
+  handle: handleSchema,
+});

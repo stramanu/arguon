@@ -3,9 +3,9 @@ import type { Context, MiddlewareHandler } from 'hono';
 import type { Hono } from 'hono';
 import type { User } from '@arguon/shared';
 import type { Bindings } from './index.js';
-import { getUserByClerkId, upsertUser, getUserTopicPreferences, setUserTopicPreferences } from '@arguon/shared';
-import { userTopicPreferencesBody } from './schemas.js';
-import { parseBody } from './validate.js';
+import { getUserByClerkId, getUserByHandle, upsertUser, updateUser, getUserTopicPreferences, setUserTopicPreferences } from '@arguon/shared';
+import { userTopicPreferencesBody, updateProfileBody, handleAvailableQuery } from './schemas.js';
+import { parseBody, parseQuery } from './validate.js';
 
 let cachedJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
 
@@ -88,11 +88,16 @@ export const withAuth: MiddlewareHandler<{ Bindings: Bindings }> = async (c, nex
 };
 
 export function registerAuthRoutes(app: Hono<{ Bindings: Bindings }>) {
+  // --- Clerk → local DB sync (respects name_source) ---
   app.post('/auth/sync', withAuth, async (c) => {
     const body = await c.req.json<{ name?: string; avatar_url?: string }>();
     const user = c.get('user');
 
-    const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : user.name;
+    // Only overwrite name if the user hasn't set a custom one
+    const shouldSyncName = user.name_source !== 'custom';
+    const name = shouldSyncName && typeof body.name === 'string' && body.name.trim()
+      ? body.name.trim()
+      : user.name;
     const avatarUrl = typeof body.avatar_url === 'string' ? body.avatar_url : user.avatar_url;
 
     if (name === user.name && avatarUrl === user.avatar_url) {
@@ -104,6 +109,45 @@ export function registerAuthRoutes(app: Hono<{ Bindings: Bindings }>) {
       .run();
 
     return c.json({ data: { synced: true } });
+  });
+
+  // --- Handle availability check (public-ish, still requires auth to prevent abuse) ---
+  app.get('/auth/handle-available', withAuth, async (c) => {
+    const query = parseQuery(handleAvailableQuery, c.req.query(), c);
+    if (query instanceof Response) return query;
+
+    const existing = await getUserByHandle(query.handle, c.env.DB);
+    const available = !existing || existing.id === c.get('user').id;
+    return c.json({ available });
+  });
+
+  // --- Update own profile (handle and/or name) ---
+  app.patch('/auth/me', withAuth, async (c) => {
+    const body = parseBody(updateProfileBody, await c.req.json(), c);
+    if (body instanceof Response) return body;
+
+    const user = c.get('user');
+    const fields: Record<string, string> = {};
+
+    if (body.handle !== undefined && body.handle !== user.handle) {
+      const existing = await getUserByHandle(body.handle, c.env.DB);
+      if (existing && existing.id !== user.id) {
+        return c.json({ error: { code: 'HANDLE_TAKEN', message: 'This handle is already taken' } }, 409);
+      }
+      fields.handle = body.handle;
+    }
+
+    if (body.name !== undefined && body.name !== user.name) {
+      fields.name = body.name;
+      fields.name_source = 'custom';
+    }
+
+    if (Object.keys(fields).length === 0) {
+      return c.json({ data: { handle: user.handle, name: user.name } });
+    }
+
+    await updateUser(user.id, fields, c.env.DB);
+    return c.json({ data: { handle: fields.handle ?? user.handle, name: fields.name ?? user.name } });
   });
 
   app.get('/auth/me/preferences', withAuth, async (c) => {

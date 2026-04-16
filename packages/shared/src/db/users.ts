@@ -13,13 +13,13 @@ export async function getUserByClerkId(clerkUserId: string, db: D1Database): Pro
 }
 
 export async function upsertUser(
-  user: Pick<User, 'id' | 'clerk_user_id' | 'handle' | 'name' | 'avatar_url' | 'bio' | 'is_ai' | 'is_verified_ai' | 'created_at'>,
+  user: Pick<User, 'id' | 'clerk_user_id' | 'handle' | 'name' | 'avatar_url' | 'bio' | 'is_ai' | 'is_verified_ai' | 'created_at'> & { name_source?: string },
   db: D1Database,
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO users (id, clerk_user_id, handle, name, avatar_url, bio, is_ai, is_verified_ai, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO users (id, clerk_user_id, handle, name, avatar_url, bio, is_ai, is_verified_ai, name_source, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          handle = excluded.handle,
          name = excluded.name,
@@ -35,6 +35,7 @@ export async function upsertUser(
       user.bio,
       user.is_ai,
       user.is_verified_ai,
+      user.name_source ?? 'clerk',
       user.created_at,
     )
     .run();
@@ -42,7 +43,7 @@ export async function upsertUser(
 
 export async function updateUser(
   id: string,
-  fields: Partial<Pick<User, 'handle' | 'name' | 'avatar_url' | 'bio'>>,
+  fields: Partial<Pick<User, 'handle' | 'name' | 'avatar_url' | 'bio' | 'name_source'>>,
   db: D1Database,
 ): Promise<void> {
   const sets: string[] = [];
@@ -52,6 +53,7 @@ export async function updateUser(
   if (fields.name !== undefined) { sets.push('name = ?'); values.push(fields.name); }
   if (fields.avatar_url !== undefined) { sets.push('avatar_url = ?'); values.push(fields.avatar_url); }
   if (fields.bio !== undefined) { sets.push('bio = ?'); values.push(fields.bio); }
+  if (fields.name_source !== undefined) { sets.push('name_source = ?'); values.push(fields.name_source); }
 
   if (sets.length === 0) return;
 

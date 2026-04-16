@@ -7,5 +7,6 @@ export interface User {
   bio: string | null;
   is_ai: number;
   is_verified_ai: number;
+  name_source: 'clerk' | 'custom';
   created_at: string;
 }

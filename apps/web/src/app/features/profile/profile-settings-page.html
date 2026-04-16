@@ -7,39 +7,119 @@
   } @else if (profile()) {
     <section class="bg-surface border border-border rounded-xl p-5 mb-4">
       <h2 class="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">Your Profile</h2>
-      <div class="flex gap-4 items-start">
-        <span ngpAvatar class="w-16 h-16 rounded-full overflow-hidden shrink-0 inline-block">
-          @if (auth.userAvatar()) {
-            <img ngpAvatarImage [src]="auth.userAvatar()!" [alt]="profile()!.name" class="w-full h-full object-cover" />
-          }
-          <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted text-xl font-semibold">
-            {{ profile()!.name.charAt(0).toUpperCase() }}
-          </span>
-        </span>
-        <div class="flex-1 min-w-0">
-          <h3 class="text-lg font-semibold text-text m-0">{{ profile()!.name }}</h3>
-          <span class="text-sm text-text-muted">&#64;{{ profile()!.handle }}</span>
-          <div class="flex gap-4 mt-2">
-            <a [routerLink]="['/u', profile()!.handle, 'followers']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
-              <strong class="text-text font-semibold">{{ profile()!.follower_count }}</strong> followers
-            </a>
-            <a [routerLink]="['/u', profile()!.handle, 'following']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
-              <strong class="text-text font-semibold">{{ profile()!.following_count }}</strong> following
-            </a>
+
+      @if (editingProfile()) {
+        <!-- Edit mode -->
+        <div class="space-y-4">
+          <div>
+            <label for="edit-handle" class="block text-sm font-medium text-text mb-1">Handle</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">&#64;</span>
+              <input
+                id="edit-handle"
+                type="text"
+                [ngModel]="editHandle()"
+                (ngModelChange)="onHandleInput($event)"
+                maxlength="30"
+                class="w-full pl-7 pr-3 py-2 rounded-lg border text-sm bg-surface text-text placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30"
+                [class]="handleError() ? 'border-error' : 'border-border'"
+              />
+            </div>
+            <div class="mt-1 h-5 text-xs">
+              @if (handleChecking()) {
+                <span class="text-text-muted">Checking availability...</span>
+              } @else if (handleError()) {
+                <span class="text-error">{{ handleError() }}</span>
+              } @else if (handleAvailable() === true && editHandle() !== profile()!.handle) {
+                <span class="text-primary">Available</span>
+              }
+            </div>
           </div>
-          <div class="mt-1 text-xs text-text-faint">Joined {{ joinedDate() }}</div>
+
+          <div>
+            <label for="edit-name" class="block text-sm font-medium text-text mb-1">Display Name</label>
+            <input
+              id="edit-name"
+              type="text"
+              [ngModel]="editName()"
+              (ngModelChange)="editName.set($event)"
+              maxlength="50"
+              class="w-full px-3 py-2 rounded-lg border border-border text-sm bg-surface text-text placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+
+          @if (profileSaveError()) {
+            <p class="text-xs text-error">{{ profileSaveError() }}</p>
+          }
+
+          <div class="flex gap-2">
+            <button
+              ngpButton
+              (click)="saveProfile()"
+              [disabled]="profileSaving() || handleChecking() || !!handleError()"
+              class="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white border border-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+            >
+              {{ profileSaving() ? 'Saving...' : 'Save' }}
+            </button>
+            <button
+              ngpButton
+              (click)="cancelEditProfile()"
+              class="px-4 py-2 rounded-lg text-sm font-medium bg-surface text-text-secondary border border-border hover:bg-surface-hover transition-colors duration-150"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="mt-4">
-        <a [routerLink]="['/u', profile()!.handle]" ngpButton class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover font-medium">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/>
-            <line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-          View public profile
-        </a>
-      </div>
+      } @else {
+        <!-- Display mode -->
+        <div class="flex gap-4 items-start">
+          <span ngpAvatar class="w-16 h-16 rounded-full overflow-hidden shrink-0 inline-block">
+            @if (auth.userAvatar()) {
+              <img ngpAvatarImage [src]="auth.userAvatar()!" [alt]="profile()!.name" class="w-full h-full object-cover" />
+            }
+            <span ngpAvatarFallback class="flex items-center justify-center w-full h-full bg-surface-alt text-text-muted text-xl font-semibold">
+              {{ profile()!.name.charAt(0).toUpperCase() }}
+            </span>
+          </span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-semibold text-text m-0">{{ profile()!.name }}</h3>
+            <span class="text-sm text-text-muted">&#64;{{ profile()!.handle }}</span>
+            <div class="flex gap-4 mt-2">
+              <a [routerLink]="['/u', profile()!.handle, 'followers']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+                <strong class="text-text font-semibold">{{ profile()!.follower_count }}</strong> followers
+              </a>
+              <a [routerLink]="['/u', profile()!.handle, 'following']" class="text-sm text-text-muted no-underline hover:text-primary hover:underline">
+                <strong class="text-text font-semibold">{{ profile()!.following_count }}</strong> following
+              </a>
+            </div>
+            <div class="mt-1 text-xs text-text-faint">Joined {{ joinedDate() }}</div>
+          </div>
+        </div>
+        @if (profileSaved()) {
+          <p class="mt-2 text-xs text-primary">Profile updated</p>
+        }
+        <div class="mt-4 flex gap-3">
+          <button
+            ngpButton
+            (click)="startEditProfile()"
+            class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover font-medium"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit profile
+          </button>
+          <a [routerLink]="['/u', profile()!.handle]" ngpButton class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover font-medium">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            View public profile
+          </a>
+        </div>
+      }
     </section>
 
     <!-- Account section -->
