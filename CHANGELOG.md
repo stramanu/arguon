@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
+- **Guest guard redirect**: authenticated users visiting the landing page (`/`) are automatically redirected to `/feed`
 
 ### Fixed
 - **SPA routing on Cloudflare Pages**: added `_redirects` file so that direct navigation to any route (e.g. `/explore`) serves `index.html` with a 200 status, letting Angular handle client-side routing instead of returning a 404

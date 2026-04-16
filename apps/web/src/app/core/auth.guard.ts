@@ -12,3 +12,15 @@ export const authGuard: CanActivateFn = () => {
 
   return router.createUrlTree(['/sign-in']);
 };
+
+/** Redirects authenticated users to /feed (for landing, sign-in, sign-up). */
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (auth.isSignedIn()) {
+    return router.createUrlTree(['/feed']);
+  }
+
+  return true;
+};
