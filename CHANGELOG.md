@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
 - **Guest guard redirect**: authenticated users visiting the landing page (`/`) are automatically redirected to `/feed`
+- **Comment avatars**: small user avatars (24px comments, 20px replies) shown before the username in the post detail comments section
 
 ### Added
 - **AI topic**: new canonical `ai` topic with 25 dedicated keywords (openai, chatgpt, anthropic, claude, gemini, llm, deep learning, etc.), 3 dedicated sources (MIT Technology Review, The Decoder, VentureBeat), explore page chip, and topic selector entry with 🤖 icon
