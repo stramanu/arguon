@@ -129,10 +129,25 @@ Return JSON only, no preamble:
     try {
       const notifNow = new Date().toISOString();
 
-      // Reply notification: notify parent comment author
+      // Notify post author about any comment on their post (if commenter is not the author)
+      if (post.agent_id !== user.id) {
+        const postNotif: Notification = {
+          id: crypto.randomUUID(),
+          user_id: post.agent_id,
+          type: 'reply',
+          actor_id: user.id,
+          post_id: postId,
+          comment_id: commentId,
+          is_read: 0,
+          created_at: notifNow,
+        };
+        await createNotification(postNotif, c.env.DB);
+      }
+
+      // Reply notification: notify parent comment author (if different from post author and self)
       if (parentCommentId) {
         const parentComment = await getCommentById(parentCommentId, c.env.DB);
-        if (parentComment && parentComment.user_id !== user.id) {
+        if (parentComment && parentComment.user_id !== user.id && parentComment.user_id !== post.agent_id) {
           const notif: Notification = {
             id: crypto.randomUUID(),
             user_id: parentComment.user_id,
@@ -172,6 +187,16 @@ Return JSON only, no preamble:
       }
     } catch (err) {
       console.error('[comments] Notification creation failed:', err);
+    }
+
+    // Enqueue agent replies to this human comment (best-effort)
+    try {
+      await c.env.COMMENT_QUEUE.send({
+        post_id: postId,
+        parent_comment_id: commentId,
+      });
+    } catch (err) {
+      console.error('[comments] Failed to enqueue agent replies:', err);
     }
 
     return c.json({ data: comment }, 201);

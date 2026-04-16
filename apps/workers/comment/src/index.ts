@@ -3,6 +3,8 @@ import { getUserById } from '@arguon/shared/db/users.js';
 import {
   getPostById,
   getCommentsByPost,
+  getCommentById,
+  getCommentThread,
   insertComment,
   checkBudget,
   recordUsage,
@@ -32,6 +34,7 @@ export interface Env {
 interface CommentMessage {
   post_id: string;
   agent_id?: string;
+  parent_comment_id?: string;
 }
 
 const MAX_CONSECUTIVE_AI = 4;
@@ -241,6 +244,157 @@ async function generateComment(agentId: string, postId: string, env: Env): Promi
   });
 }
 
+const MAX_REPLY_AGENTS = 3;
+
+async function generateReply(
+  agentId: string,
+  postId: string,
+  parentCommentId: string,
+  env: Env,
+): Promise<void> {
+  const agentUser = await getUserById(agentId, env.DB);
+  if (!agentUser) throw new Error(`Agent user ${agentId} not found`);
+
+  const profile = await getAgentProfile(agentId, env.DB);
+  if (!profile) throw new Error(`Agent profile ${agentId} not found`);
+
+  const post = await getPostById(postId, env.DB);
+  if (!post) throw new Error(`Post ${postId} not found`);
+
+  const parentComment = await getCommentById(parentCommentId, env.DB);
+  if (!parentComment) throw new Error(`Parent comment ${parentCommentId} not found`);
+
+  // Budget check
+  const today = new Date().toISOString().split('T')[0];
+  const { allowed } = await checkBudget(profile.provider_id, today, env.DB);
+  if (!allowed) return;
+
+  // Don't reply to yourself
+  if (parentComment.user_id === agentId) return;
+
+  // Don't reply if agent already replied to this comment
+  const existingReplies = await getCommentThread(parentCommentId, env.DB);
+  if (existingReplies.some((r) => r.user_id === agentId)) return;
+
+  // Get parent comment author info
+  const parentAuthor = await getUserById(parentComment.user_id, env.DB);
+  const parentHandle = parentAuthor?.handle ?? 'unknown';
+
+  // Get post author info
+  const postAuthor = await getUserById(post.agent_id, env.DB);
+  const authorHandle = postAuthor?.handle ?? 'unknown';
+
+  // Build thread context from existing replies to this comment
+  const recentReplies = existingReplies.slice(-5);
+  const threadContext =
+    recentReplies.length > 0
+      ? (
+          await Promise.all(
+            recentReplies.map(async (cmt) => {
+              const cmtUser = await getUserById(cmt.user_id, env.DB);
+              return `@${cmtUser?.handle ?? 'unknown'}: ${cmt.content}`;
+            }),
+          )
+        ).join('\n')
+      : '(no replies yet)';
+
+  // Retrieve relevant memories
+  const contextText = `${post.headline}: ${parentComment.content}`;
+  const retrievalEnv: RetrievalEnv = { DB: env.DB, MEMORY_INDEX: env.MEMORY_INDEX, AI: env.AI };
+  const memories = await retrieveRelevantMemories(
+    agentId,
+    contextText,
+    profile.behavior.memory_decay_lambda,
+    profile.behavior.memory_context_limit,
+    retrievalEnv,
+  );
+  const memoryBlock = formatMemoryBlock(memories);
+
+  // Build prompt (with parentComment context for reply awareness)
+  const { system, user: userPrompt } = buildCommentPrompt(
+    { name: agentUser.name, handle: agentUser.handle, bio: agentUser.bio ?? '', profile },
+    { headline: post.headline, summary: post.summary, authorHandle },
+    threadContext,
+    memoryBlock,
+    { handle: parentHandle, content: parentComment.content },
+  );
+
+  const llm = createLLMProvider(profile.provider_id, profile.model_id, {
+    ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: env.GEMINI_API_KEY,
+    GROQ_API_KEY: env.GROQ_API_KEY,
+  });
+  const result = await llm.call({ system, user: userPrompt, maxTokens: 1024 });
+
+  // Parse response
+  const cleaned = result.text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+  const parsed = JSON.parse(cleaned) as { content: string; reaction_type?: string };
+
+  if (!parsed.content || typeof parsed.content !== 'string' || parsed.content.length === 0) {
+    throw new Error('LLM returned empty content for reply');
+  }
+
+  const content = parsed.content.slice(0, 300);
+
+  const commentId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  const comment: Comment = {
+    id: commentId,
+    post_id: postId,
+    parent_comment_id: parentCommentId,
+    user_id: agentId,
+    content,
+    is_ai: 1,
+    created_at: now,
+  };
+
+  await insertComment(comment, env.DB);
+
+  // Notify parent comment author about the reply
+  try {
+    if (parentComment.user_id !== agentId) {
+      const notif: Notification = {
+        id: crypto.randomUUID(),
+        user_id: parentComment.user_id,
+        type: 'reply',
+        actor_id: agentId,
+        post_id: postId,
+        comment_id: commentId,
+        is_read: 0,
+        created_at: now,
+      };
+      await createNotification(notif, env.DB);
+    }
+  } catch (err) {
+    console.error('[comment] Reply notification failed:', err);
+  }
+
+  // Record usage
+  const inputCost = result.inputTokens * 0.000003;
+  const outputCost = result.outputTokens * 0.000015;
+  await recordUsage(
+    profile.provider_id,
+    today,
+    result.inputTokens + result.outputTokens,
+    inputCost + outputCost,
+    env.DB,
+  );
+  await pauseProviderIfCapped(profile.provider_id, today, env.DB);
+  await logBudgetAlert(profile.provider_id, today, env.DB);
+
+  // Enqueue memory event
+  await env.MEMORY_QUEUE.send({
+    agent_id: agentId,
+    event_type: 'replied',
+    ref_type: 'comment',
+    ref_id: commentId,
+    content,
+    topics: post.tags_json ? (JSON.parse(post.tags_json) as string[]) : [],
+    initial_weight: 0.9,
+  });
+}
+
 export default {
   async queue(
     batch: MessageBatch<CommentMessage>,
@@ -248,7 +402,43 @@ export default {
     _ctx: ExecutionContext,
   ): Promise<void> {
     for (const msg of batch.messages) {
-      const { post_id, agent_id } = msg.body;
+      const { post_id, agent_id, parent_comment_id } = msg.body;
+
+      // Reply mode: agents reply to a specific human comment
+      if (parent_comment_id) {
+        try {
+          const agents = await getActiveAgents(env.DB);
+          const parentComment = await getCommentById(parent_comment_id, env.DB);
+          if (!parentComment) {
+            msg.ack();
+            continue;
+          }
+
+          // Shuffle agents and pick up to MAX_REPLY_AGENTS that pass probability gate
+          const candidates = agents
+            .filter((a) => a.id !== parentComment.user_id)
+            .sort(() => Math.random() - 0.5);
+
+          let repliedCount = 0;
+          for (const agent of candidates) {
+            if (repliedCount >= MAX_REPLY_AGENTS) break;
+            // Use halved comment_probability as reply gate
+            if (Math.random() >= agent.profile.behavior.comment_probability * 0.5) continue;
+
+            try {
+              await generateReply(agent.id, post_id, parent_comment_id, env);
+              repliedCount++;
+            } catch (err) {
+              console.error(`[comment] Reply failed for agent ${agent.name} on comment ${parent_comment_id}:`, err);
+            }
+          }
+          msg.ack();
+        } catch (err) {
+          console.error(`[comment] Reply fan-out failed for comment ${parent_comment_id}:`, err);
+          msg.ack();
+        }
+        continue;
+      }
 
       if (agent_id) {
         // Single agent comment

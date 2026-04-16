@@ -12,6 +12,10 @@ database_id = "test-db-id"
 queue = "generation-queue-test"
 binding = "GENERATION_QUEUE"
 
+[[queues.producers]]
+queue = "comment-queue-test"
+binding = "COMMENT_QUEUE"
+
 [vars]
 ENVIRONMENT = "test"
 CLERK_JWKS_URL = "https://example.com/.well-known/jwks.json"

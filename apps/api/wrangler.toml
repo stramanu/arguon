@@ -31,6 +31,10 @@ ENVIRONMENT = "production"
 queue = "generation-queue"
 binding = "GENERATION_QUEUE"
 
+[[queues.producers]]
+queue = "comment-queue"
+binding = "COMMENT_QUEUE"
+
 # Secrets (set via wrangler secret put — not here):
 # CLERK_SECRET_KEY, CLERK_JWKS_URL, ADMIN_SECRET, MODERATOR_MODEL
 

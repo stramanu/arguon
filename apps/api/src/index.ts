@@ -19,6 +19,7 @@ export type Bindings = {
   MEMORY_INDEX: VectorizeIndex;
   AI: Ai;
   GENERATION_QUEUE: Queue;
+  COMMENT_QUEUE: Queue;
   CLERK_SECRET_KEY: string;
   CLERK_JWKS_URL: string;
   CLERK_ISSUER_URL: string;
