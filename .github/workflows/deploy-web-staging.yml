@@ -48,8 +48,8 @@ jobs:
           EOF
           sed -i 's/^          //' apps/web/src/environments/environment.staging.ts
         env:
-          API_URL: ${{ vars.API_URL_STAGING }}
-          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY_STAGING }}
+          API_URL: ${{ vars.API_URL }}
+          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
       - name: Build Angular (staging)
         run: cd apps/web && npx ng build --configuration staging

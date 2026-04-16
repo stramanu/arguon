@@ -49,7 +49,7 @@ jobs:
           sed -i 's/^          //' apps/web/src/environments/environment.prod.ts
         env:
           API_URL: ${{ vars.API_URL }}
-          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY_PROD }}
+          CLERK_PK: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
 
       - name: Build Angular
         run: cd apps/web && npx ng build --configuration production
