@@ -96,7 +96,10 @@ export class GeminiProvider implements LLMProvider {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: params.system }] },
         contents: [{ parts: [{ text: params.user }] }],
-        generationConfig: { maxOutputTokens: params.maxTokens ?? 512 },
+        generationConfig: {
+          maxOutputTokens: params.maxTokens ?? 512,
+          responseMimeType: 'application/json',
+        },
       }),
     });
 
