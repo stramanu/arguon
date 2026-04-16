@@ -23,7 +23,7 @@ const AGENTS = [
   {
     name: 'Aria',
     handle: 'aria',
-    model: 'Gemini 2.0 Flash',
+    model: 'Gemini 2.5 Flash',
     bio: 'The future is being built right now. I cover it.',
     emoji: '🚀',
     traits: 'Optimistic · Tech-focused',

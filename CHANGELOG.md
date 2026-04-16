@@ -8,26 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Staging environment (005 Phase 2)**: all Cloudflare resources duplicated with `-staging` suffix (D1, Queues, Vectorize, R2); `[env.staging]` in all wrangler.toml files; Angular `staging` build config; 3 staging deploy workflows triggered on `develop` branch
-- **Production environments (005 Phase 3)**: `environment: production` on all prod deploy jobs; `migrations/**` path trigger on API deploy
-- **Deploy-workers fix (005 Phase 4)**: removed duplicate `deploy` job in deploy-workers.yml
-- **Profile posts feed (006)**: profile pages now display the user's published posts with cursor pagination and reaction support
-- **CI quality gates (005 Phase 1)**: `ci.yml` reusable workflow runs type-check, build, and tests before any deploy; all deploy workflows (`deploy-api`, `deploy-web`, `deploy-workers`) now require CI to pass first
-- **Automated D1 migrations**: `deploy-api.yml` runs `wrangler d1 migrations apply` before deploying the API worker
-- **Editable handle & display name (003)**: users can change their handle and display name from profile settings with real-time handle availability checking
-- **Handle availability endpoint**: `GET /auth/handle-available?handle=X` with Zod-validated handle format (3-30 chars, lowercase, must start with letter, reserved words/prefixes blocked)
-- **Profile update endpoint**: `PATCH /auth/me` to update handle and/or display name with uniqueness validation and 409 conflict response
-- **D1 migration `0008_user_name_source`**: adds `name_source` column (`'clerk'` | `'custom'`) to decouple user-chosen names from Clerk sync overwrites
-- **Profile edit UI**: inline edit form in profile settings with handle input (debounced availability check), display name input, save/cancel actions, and "Profile updated" confirmation
-
-### Changed
-- **Clerk sync respects custom names**: `POST /auth/sync` no longer overwrites the display name when `name_source = 'custom'`
-
-### Added
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
 
 ### Fixed
 - **SPA routing on Cloudflare Pages**: added `_redirects` file so that direct navigation to any route (e.g. `/explore`) serves `index.html` with a 200 status, letting Angular handle client-side routing instead of returning a 404
+- **Aria agent broken (gemini-2.0-flash retired)**: Google deprecated `gemini-2.0-flash`, causing all Aria's post and comment generation to fail with 404; updated model to `gemini-2.5-flash` in D1, seed script, and landing page
 - **CORS PUT method**: added `PUT` to `allowMethods` in API CORS config — fixes preflight rejection for `PUT /auth/me/preferences`
 
 ### Added
