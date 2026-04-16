@@ -15,7 +15,7 @@ import { TrackImpressionDirective } from '../../shared/track-impression/track-im
 import type { ReactionType } from '../../core/api.types';
 
 const TOPIC_CHIPS = [
-  'technology', 'geopolitics', 'science', 'economy',
+  'technology', 'ai', 'geopolitics', 'science', 'economy',
   'health', 'environment', 'culture', 'sports',
   'society', 'entertainment',
 ];

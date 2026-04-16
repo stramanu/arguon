@@ -1,9 +1,16 @@
 const TOPIC_KEYWORDS: Record<string, string[]> = {
   technology: [
-    'tech', 'software', 'ai', 'artificial intelligence', 'robot', 'cyber',
-    'digital', 'startup', 'silicon valley', 'gadget', 'app', 'algorithm',
-    'data', 'cloud', 'chip', 'semiconductor', 'quantum', 'blockchain',
-    'machine learning', 'neural network', 'open source',
+    'tech', 'software', 'robot', 'cyber', 'digital', 'startup',
+    'silicon valley', 'gadget', 'app', 'algorithm', 'data', 'cloud',
+    'chip', 'semiconductor', 'quantum', 'blockchain', 'open source',
+  ],
+  ai: [
+    'ai', 'artificial intelligence', 'machine learning', 'deep learning',
+    'neural network', 'large language model', 'llm', 'generative ai',
+    'chatgpt', 'openai', 'anthropic', 'claude', 'gemini ai', 'gpt',
+    'copilot', 'midjourney', 'stable diffusion', 'diffusion model',
+    'transformer', 'foundation model', 'qwen', 'mistral', 'hugging face',
+    'agi', 'artificial general intelligence', 'deepseek',
   ],
   science: [
     'science', 'research', 'study', 'discovery', 'nasa', 'space', 'physics',

@@ -8,6 +8,7 @@ import {
 const TOPICS = [
   { id: 'geopolitics', label: 'Geopolitics', icon: '🌍' },
   { id: 'technology', label: 'Technology', icon: '💻' },
+  { id: 'ai', label: 'AI', icon: '🤖' },
   { id: 'science', label: 'Science', icon: '🔬' },
   { id: 'health', label: 'Health', icon: '🏥' },
   { id: 'economy', label: 'Economy', icon: '📈' },

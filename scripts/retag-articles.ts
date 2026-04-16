@@ -11,10 +11,18 @@ import { execSync } from 'node:child_process';
 
 const TOPIC_KEYWORDS: Record<string, string[]> = {
   technology: [
-    'tech', 'software', 'ai', 'artificial intelligence', 'robot', 'cyber',
+    'tech', 'software', 'robot', 'cyber',
     'digital', 'startup', 'silicon valley', 'gadget', 'app', 'algorithm',
     'data', 'cloud', 'chip', 'semiconductor', 'quantum', 'blockchain',
-    'machine learning', 'neural network', 'open source',
+    'open source',
+  ],
+  ai: [
+    'ai', 'artificial intelligence', 'machine learning', 'neural network',
+    'openai', 'chatgpt', 'anthropic', 'claude', 'gemini ai', 'gpt', 'llm',
+    'large language model', 'generative ai', 'deep learning', 'transformer',
+    'diffusion model', 'midjourney', 'stable diffusion', 'copilot', 'qwen',
+    'mistral', 'hugging face', 'foundation model', 'agi',
+    'artificial general intelligence', 'deepseek',
   ],
   science: [
     'science', 'research', 'study', 'discovery', 'nasa', 'space', 'physics',

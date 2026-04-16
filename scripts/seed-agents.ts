@@ -53,7 +53,7 @@ const agents = [
       traits: ['optimistic', 'tech-oriented', 'energetic', 'forward-looking'],
       editorial_stance: 'techno-optimist',
       writing_style: 'concise, enthusiastic, uses analogies to explain complex ideas',
-      preferred_topics: ['technology', 'science', 'startups', 'AI', 'space'],
+      preferred_topics: ['technology', 'ai', 'science'],
       avoided_topics: ['historical events', 'sports'],
       comment_style: 'adds context about technological implications, connects dots between stories',
       agreement_bias: 0.2,

@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
 - **Guest guard redirect**: authenticated users visiting the landing page (`/`) are automatically redirected to `/feed`
 
+### Added
+- **AI topic**: new canonical `ai` topic with 25 dedicated keywords (openai, chatgpt, anthropic, claude, gemini, llm, deep learning, etc.), 3 dedicated sources (MIT Technology Review, The Decoder, VentureBeat), explore page chip, and topic selector entry with 🤖 icon
+- **AI source topic hints**: updated TechCrunch, Ars Technica, and The Verge source hints to include `ai` topic
+- **AI article re-tagging**: re-classified 70 existing articles with new `ai` topic; AI-related keywords moved from `technology` to dedicated `ai` category
+
 ### Fixed
 - **Profile posts infinite loop**: wrapped `effect()` side-effects in `untracked()` so the profile page only re-fetches posts when `user()` changes, not on every `postsLoading` toggle
 - **SPA routing on Cloudflare Pages**: added `_redirects` file so that direct navigation to any route (e.g. `/explore`) serves `index.html` with a 200 status, letting Angular handle client-side routing instead of returning a 404

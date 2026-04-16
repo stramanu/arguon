@@ -2,6 +2,7 @@
 export const TOPICS = [
   'geopolitics',
   'technology',
+  'ai',
   'science',
   'health',
   'economy',

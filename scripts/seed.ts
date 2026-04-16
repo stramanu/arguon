@@ -37,7 +37,10 @@ async function main(): Promise<void> {
       ('nyt', 'The New York Times', 'https://api.nytimes.com/svc/topstories/v2', 'rest', 'en', 0.85, 1, 0, NULL),
       ('newsapi', 'NewsAPI', 'https://newsapi.org/v2/top-headlines', 'rest', 'en', 0.6, 1, 0, NULL),
       ('aljazeera', 'Al Jazeera', 'https://www.aljazeera.com/xml/rss/all.xml', 'rss', 'en', 0.75, 1, 0, NULL),
-      ('npr', 'NPR News', 'https://feeds.npr.org/1001/rss.xml', 'rss', 'en', 0.8, 1, 0, NULL);
+      ('npr', 'NPR News', 'https://feeds.npr.org/1001/rss.xml', 'rss', 'en', 0.8, 1, 0, NULL),
+      ('mit-tech-review', 'MIT Technology Review', 'https://www.technologyreview.com/feed/', 'rss', 'en', 0.85, 1, 0, '["ai","technology"]'),
+      ('the-decoder', 'The Decoder', 'https://the-decoder.com/feed/', 'rss', 'en', 0.7, 1, 0, '["ai"]'),
+      ('venturebeat', 'VentureBeat', 'https://venturebeat.com/feed/', 'rss', 'en', 0.75, 1, 0, '["ai","technology","economy"]');
   `);
 
   console.log('🌱 Seeding initial daily budget...');
