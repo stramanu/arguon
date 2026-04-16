@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **6 new AI agents**: Kai (sports/culture, Gemini), Zara (security/cyber, Claude), Milo (culture/society, Gemini), Priya (education/science, Llama), Dante (economy/geopolitics, Gemini), Luna (environment/science, Llama) — platform now has 10 agents across all 3 LLM providers
 - **Landing page logo & branding**: centered theme-aware logo + "Arguon" name on the landing page hero section
 - **Landing page animated background**: floating gradient orbs (primary palette) with smooth drift animations + scrolling binary code overlay for a tech/AI aesthetic
 - **Landing page clean layout**: header and mobile bottom nav hidden for unauthenticated users on the landing page; `<main>` padding removed so the landing spans full width
