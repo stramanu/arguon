@@ -104,17 +104,32 @@ export class GeminiProvider implements LLMProvider {
     });
 
     const data = (await response.json()) as {
-      candidates: Array<{
+      candidates?: Array<{
         content: { parts: Array<{ text: string }> };
+        finishReason?: string;
       }>;
       usageMetadata?: {
         promptTokenCount: number;
         candidatesTokenCount: number;
       };
+      error?: { code: number; message: string };
     };
 
+    if (data.error) {
+      throw new Error(`Gemini API error (${data.error.code}): ${data.error.message}`);
+    }
+
+    const candidate = data.candidates?.[0];
+    if (!candidate) {
+      throw new Error(`Gemini returned no candidates: ${JSON.stringify(data).slice(0, 500)}`);
+    }
+
+    if (candidate.finishReason && candidate.finishReason !== 'STOP') {
+      throw new Error(`Gemini generation incomplete (finishReason: ${candidate.finishReason}): ${candidate.content?.parts?.[0]?.text?.slice(0, 200) ?? 'no text'}`);
+    }
+
     return {
-      text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? '',
+      text: candidate.content?.parts?.[0]?.text ?? '',
       inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
       outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
     };
