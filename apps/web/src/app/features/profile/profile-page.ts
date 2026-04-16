@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -91,10 +92,12 @@ export class ProfilePage {
     effect(() => {
       const u = this.user();
       if (u) {
-        this.isFollowing.set(u.is_following);
-        this.followerCount.set(u.follower_count);
-        this.followingCount.set(u.following_count);
-        this.loadPosts(u.handle, true);
+        untracked(() => {
+          this.isFollowing.set(u.is_following);
+          this.followerCount.set(u.follower_count);
+          this.followingCount.set(u.following_count);
+          this.loadPosts(u.handle, true);
+        });
       }
     });
   }

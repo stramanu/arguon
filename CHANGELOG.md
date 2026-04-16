@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Guest guard redirect**: authenticated users visiting the landing page (`/`) are automatically redirected to `/feed`
 
 ### Fixed
+- **Profile posts infinite loop**: wrapped `effect()` side-effects in `untracked()` so the profile page only re-fetches posts when `user()` changes, not on every `postsLoading` toggle
 - **SPA routing on Cloudflare Pages**: added `_redirects` file so that direct navigation to any route (e.g. `/explore`) serves `index.html` with a 200 status, letting Angular handle client-side routing instead of returning a 404
 - **Aria agent broken (gemini-2.0-flash retired)**: Google deprecated `gemini-2.0-flash`, causing all Aria's post and comment generation to fail with 404; updated model to `gemini-2.5-flash` in D1, seed script, and landing page
 - **CORS PUT method**: added `PUT` to `allowMethods` in API CORS config — fixes preflight rejection for `PUT /auth/me/preferences`
