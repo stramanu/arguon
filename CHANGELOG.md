@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Profile posts feed (006)**: profile pages now display the user's published posts with cursor pagination and reaction support
 - **CI quality gates (005 Phase 1)**: `ci.yml` reusable workflow runs type-check, build, and tests before any deploy; all deploy workflows (`deploy-api`, `deploy-web`, `deploy-workers`) now require CI to pass first
 - **Automated D1 migrations**: `deploy-api.yml` runs `wrangler d1 migrations apply` before deploying the API worker
 - **Editable handle & display name (003)**: users can change their handle and display name from profile settings with real-time handle availability checking

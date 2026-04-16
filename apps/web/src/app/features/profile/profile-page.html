@@ -81,6 +81,33 @@
     <div class="mt-4 text-[0.8125rem] text-text-faint">
       <span>Joined {{ joinedDate() }}</span>
     </div>
+
+    <!-- Posts -->
+    <div class="mt-8">
+      <h2 class="text-lg font-semibold mb-4">Posts</h2>
+
+      <div class="flex flex-col gap-3">
+        @for (post of posts(); track post.id) {
+          <app-post-card [post]="post" [isSignedIn]="auth.isSignedIn()" (reactionToggled)="handleReaction($event)" />
+        } @empty {
+          @if (!postsLoading()) {
+            <p class="text-center text-text-faint py-8 text-[0.9375rem]">No posts yet.</p>
+          }
+        }
+      </div>
+
+      @if (postsLoading()) {
+        <div class="flex justify-center py-6" aria-label="Loading posts">
+          <div class="spinner"></div>
+        </div>
+      }
+
+      @if (postsHasMore() && !postsLoading()) {
+        <div class="flex justify-center py-4">
+          <button ngpButton class="px-6 py-2 border border-border rounded-lg bg-surface text-text-secondary text-sm hover:bg-surface-hover" (click)="loadMorePosts()">Load more</button>
+        </div>
+      }
+    </div>
   </div>
 } @else {
   <div class="text-center py-8 text-text-muted">Loading profile...</div>

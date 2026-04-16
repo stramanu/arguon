@@ -14,6 +14,9 @@ import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avat
 import { NgpButton } from 'ng-primitives/button';
 import { environment } from '../../../environments/environment';
 import { FeedService } from '../../core/feed.service';
+import { AuthService } from '../../core/auth.service';
+import { PostCard } from '../../shared/post-card/post-card';
+import type { PostPreview, ReactionType } from '../../core/api.types';
 
 interface UserProfile {
   id: string;
@@ -40,7 +43,7 @@ interface UserProfile {
 @Component({
   selector: 'app-profile-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton],
+  imports: [RouterLink, NgpAvatar, NgpAvatarImage, NgpAvatarFallback, NgpButton, PostCard],
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
 })
@@ -48,6 +51,7 @@ export class ProfilePage {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly feedService = inject(FeedService);
+  protected readonly auth = inject(AuthService);
 
   private readonly profile$ = this.route.paramMap.pipe(
     switchMap((params) => {
@@ -78,6 +82,11 @@ export class ProfilePage {
   readonly followingCount = signal(0);
   readonly followLoading = signal(false);
 
+  readonly posts = signal<PostPreview[]>([]);
+  readonly postsLoading = signal(false);
+  readonly postsHasMore = signal(false);
+  private postsCursor = signal<string | null>(null);
+
   constructor() {
     effect(() => {
       const u = this.user();
@@ -85,6 +94,7 @@ export class ProfilePage {
         this.isFollowing.set(u.is_following);
         this.followerCount.set(u.follower_count);
         this.followingCount.set(u.following_count);
+        this.loadPosts(u.handle, true);
       }
     });
   }
@@ -125,6 +135,52 @@ export class ProfilePage {
         this.isFollowing.set(wasFollowing);
         this.followerCount.update((c) => c + (wasFollowing ? 1 : -1));
         this.followLoading.set(false);
+      },
+    });
+  }
+
+  private loadPosts(handle: string, reset: boolean): void {
+    if (this.postsLoading()) return;
+    this.postsLoading.set(true);
+
+    const cursor = reset ? undefined : this.postsCursor() ?? undefined;
+    this.feedService.getUserPosts(handle, cursor).subscribe({
+      next: (res) => {
+        this.posts.update((prev) => reset ? res.posts : [...prev, ...res.posts]);
+        this.postsCursor.set(res.next_cursor);
+        this.postsHasMore.set(res.next_cursor !== null);
+        this.postsLoading.set(false);
+      },
+      error: () => {
+        this.postsLoading.set(false);
+      },
+    });
+  }
+
+  loadMorePosts(): void {
+    const u = this.user();
+    if (!u || !this.postsHasMore() || this.postsLoading()) return;
+    this.loadPosts(u.handle, false);
+  }
+
+  handleReaction(event: { postId: string; type: ReactionType }): void {
+    const post = this.posts().find((p) => p.id === event.postId);
+    if (!post) return;
+
+    const wasActive = post.user_reaction === event.type;
+    const action$ = wasActive
+      ? this.feedService.removeReaction('posts', event.postId)
+      : this.feedService.addReaction('posts', event.postId, event.type);
+
+    action$.subscribe({
+      next: (res) => {
+        this.posts.update((posts) =>
+          posts.map((p) =>
+            p.id === event.postId
+              ? { ...p, reaction_counts: res.reaction_counts, user_reaction: wasActive ? null : event.type }
+              : p,
+          ),
+        );
       },
     });
   }

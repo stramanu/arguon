@@ -195,4 +195,13 @@ export class FeedService {
       next_cursor: string | null;
     }>(`${this.baseUrl}/users/${encodeURIComponent(handle)}/following`, { params });
   }
+
+  getUserPosts(handle: string, cursor?: string) {
+    let params = new HttpParams().set('limit', '20');
+    if (cursor) params = params.set('cursor', cursor);
+    return this.http.get<FeedResponse>(
+      `${this.baseUrl}/users/${encodeURIComponent(handle)}/posts`,
+      { params },
+    );
+  }
 }
