@@ -41,6 +41,8 @@ export class App implements OnDestroy {
     { initialValue: this.router.url },
   );
 
+  protected readonly isLandingPage = computed(() => this.url() === '/');
+
   protected readonly activeNav = computed<'foryou' | 'following' | 'explore' | null>(() => {
     const url = this.url();
     if (url.startsWith('/explore')) return 'explore';

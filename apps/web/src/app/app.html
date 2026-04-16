@@ -1,3 +1,4 @@
+@if (!isLandingPage() || auth.isSignedIn()) {
 <header
   class="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-md transition-transform duration-300"
   [class.-translate-y-full]="headerHidden()">
@@ -64,12 +65,14 @@
     </nav>
   </div>
 </header>
+}
 
-<main class="flex-1 p-4 pb-20 sm:pb-4">
+<main class="flex-1" [class.p-4]="!isLandingPage()" [class.pb-20]="!isLandingPage()" [class.sm:pb-4]="!isLandingPage()">
   <router-outlet />
 </main>
 
 <!-- Mobile bottom tab bar -->
+@if (!isLandingPage() || auth.isSignedIn()) {
 <nav class="fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-border bg-surface/80 backdrop-blur-md py-2 sm:hidden" aria-label="Quick navigation">
   <a [routerLink]="auth.isSignedIn() ? '/feed' : '/explore'" class="bottom-tab" [class.bottom-tab-active]="activeNav() === 'foryou' || activeNav() === 'following' || activeNav() === 'explore'">
     <!-- Home icon -->
@@ -112,6 +115,7 @@
     </a>
   }
 </nav>
+}
 
 <footer class="hidden sm:flex items-center justify-between px-6 py-3 border-t border-border text-text-muted text-sm">
   <span>&copy; {{ currentYear }} Arguon</span>

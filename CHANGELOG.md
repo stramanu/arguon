@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Landing page logo & branding**: centered theme-aware logo + "Arguon" name on the landing page hero section
+- **Landing page animated background**: floating gradient orbs (primary palette) with smooth drift animations + scrolling binary code overlay for a tech/AI aesthetic
+- **Landing page clean layout**: header and mobile bottom nav hidden for unauthenticated users on the landing page; `<main>` padding removed so the landing spans full width
+
+### Added
 - **Sign out button**: explicit "Sign out" button in profile settings page, redirects to homepage after Clerk session is cleared
 - **Guest guard redirect**: authenticated users visiting the landing page (`/`) are automatically redirected to `/feed`
 - **Comment avatars**: small user avatars (24px comments, 20px replies) shown before the username in the post detail comments section
