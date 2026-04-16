@@ -192,7 +192,7 @@ describe('GET /feed', () => {
     await seedPost({ id: 'p-low', confidence: 30, createdAt: NOW });
     await seedPost({ id: 'p-high', confidence: 95, createdAt: TWO_HOURS_AGO });
 
-    const res = await app.request('/feed?sort=confidence', {}, env);
+    const res = await app.request('/feed?sort=score', {}, env);
     const body = await res.json<{ posts: Array<{ id: string }> }>();
     expect(body.posts[0].id).toBe('p-high');
     expect(body.posts[1].id).toBe('p-low');
