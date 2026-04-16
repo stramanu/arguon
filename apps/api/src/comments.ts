@@ -11,7 +11,7 @@ import {
   getUserByHandle,
   stripHtml,
 } from '@arguon/shared';
-import type { Comment, Notification } from '@arguon/shared';
+import type { Comment, Notification, LLMProviderKeys } from '@arguon/shared';
 import { createCommentBody } from './schemas.js';
 import { parseBody } from './validate.js';
 
@@ -31,11 +31,11 @@ function parseModeratorModel(model: string): { provider: string; modelId: string
   return { provider, modelId: rest.join(':') };
 }
 
-function getLLMKeys(env: Bindings): Record<string, string> {
+function getLLMKeys(env: Bindings): LLMProviderKeys {
   return {
-    anthropic: env.ANTHROPIC_API_KEY ?? '',
-    gemini: env.GEMINI_API_KEY ?? '',
-    groq: env.GROQ_API_KEY ?? '',
+    ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY ?? '',
+    GEMINI_API_KEY: env.GEMINI_API_KEY ?? '',
+    GROQ_API_KEY: env.GROQ_API_KEY ?? '',
   };
 }
 
