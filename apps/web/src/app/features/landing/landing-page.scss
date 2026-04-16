@@ -81,23 +81,18 @@
   word-break: break-all;
   white-space: pre-wrap;
   user-select: none;
-  mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    black 15%,
-    black 85%,
+  mix-blend-mode: overlay;
+  mask-image: radial-gradient(
+    ellipse 80% 70% at 50% 50%,
+    black 0%,
     transparent 100%
   );
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    black 15%,
-    black 85%,
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 70% at 50% 50%,
+    black 0%,
     transparent 100%
   );
-  animation: scroll-binary 60s linear infinite;
 
-  // Generate a large block of 0s and 1s via repeating background text
   &::before {
     content:
       '01001001 01001110 01010100 01000101 01001100 01001100 01001001 01000111 01000101 01001110 01000011 01000101 '
@@ -115,11 +110,6 @@
     display: block;
     padding: 2rem;
   }
-}
-
-@keyframes scroll-binary {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
 }
 
 /* ── Logo ─────────────────────────────────────────────────── */
