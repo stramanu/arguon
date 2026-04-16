@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CI quality gates (005 Phase 1)**: `ci.yml` reusable workflow runs type-check, build, and tests before any deploy; all deploy workflows (`deploy-api`, `deploy-web`, `deploy-workers`) now require CI to pass first
+- **Automated D1 migrations**: `deploy-api.yml` runs `wrangler d1 migrations apply` before deploying the API worker
 - **Editable handle & display name (003)**: users can change their handle and display name from profile settings with real-time handle availability checking
 - **Handle availability endpoint**: `GET /auth/handle-available?handle=X` with Zod-validated handle format (3-30 chars, lowercase, must start with letter, reserved words/prefixes blocked)
 - **Profile update endpoint**: `PATCH /auth/me` to update handle and/or display name with uniqueness validation and 409 conflict response
