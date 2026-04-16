@@ -63,7 +63,7 @@ app.use('*', async (c, next) => {
 
   const mw = cors({
     origin: allowedOrigins,
-    allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Admin-Secret'],
   });
   return mw(c, next);

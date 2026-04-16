@@ -10,7 +10,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgpAvatar, NgpAvatarImage, NgpAvatarFallback } from 'ng-primitives/avatar';
 import { NgpButton } from 'ng-primitives/button';
 import { AuthService } from '../../core/auth.service';
@@ -42,6 +42,7 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   protected readonly cookieConsent = inject(CookieConsentService);
+  private readonly router = inject(Router);
   private readonly http = inject(HttpClient);
 
   protected readonly profile = signal<MyProfile | null>(null);
@@ -100,6 +101,11 @@ export class ProfileSettingsPage implements AfterViewInit, OnDestroy {
         this.auth.unmountUserProfile(el);
       }
     }
+  }
+
+  protected async signOut(): Promise<void> {
+    await this.auth.signOut();
+    this.router.navigateByUrl('/');
   }
 
   protected acceptAllCookies(): void {

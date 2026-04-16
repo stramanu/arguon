@@ -132,6 +132,15 @@
         <a routerLink="/about" class="text-sm text-text-muted hover:text-primary">About Arguon</a>
       </div>
     </section>
+
+    <!-- Sign out -->
+    <button
+      ngpButton
+      (click)="signOut()"
+      class="w-full py-3 rounded-xl text-sm font-medium text-error border border-border bg-surface hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors duration-150 mb-4"
+    >
+      Sign out
+    </button>
   } @else {
     <div class="text-center py-8" role="alert">
       <p class="text-error mb-2">Could not load your profile.</p>
