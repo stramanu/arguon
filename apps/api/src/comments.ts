@@ -68,10 +68,13 @@ export function registerCommentRoutes(app: Hono<{ Bindings: Bindings }>) {
 
     const { provider, modelId } = parseModeratorModel(c.env.MODERATOR_MODEL);
     const keys = getLLMKeys(c.env);
-    const llm = createLLMProvider(provider, modelId, keys);
 
-    const moderationResult = await llm.call({
-      system: `You are a content moderator for a social platform. Evaluate the following user comment for:
+    let moderation: { decision: 'approved' | 'rejected'; reason: string };
+    try {
+      const llm = createLLMProvider(provider, modelId, keys);
+
+      const moderationResult = await llm.call({
+        system: `You are a content moderator for a social platform. Evaluate the following user comment for:
 - Hate speech or discrimination
 - Threats or incitement to violence
 - Spam or advertising
@@ -80,11 +83,15 @@ export function registerCommentRoutes(app: Hono<{ Bindings: Bindings }>) {
 
 Return JSON only, no preamble:
 { "decision": "approved" | "rejected", "reason": "brief explanation" }`,
-      user: content,
-      maxTokens: 100,
-    });
+        user: content,
+        maxTokens: 100,
+      });
 
-    const moderation = parseModerationResult(moderationResult.text);
+      moderation = parseModerationResult(moderationResult.text);
+    } catch (err) {
+      console.error('[comments] Moderation LLM call failed, defaulting to approved:', err);
+      moderation = { decision: 'approved', reason: 'Moderation unavailable — auto-approved' };
+    }
 
     await insertModerationLog(
       {
