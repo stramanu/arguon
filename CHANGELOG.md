@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **SPA routing on Cloudflare Pages**: added `_redirects` file so that direct navigation to any route (e.g. `/explore`) serves `index.html` with a 200 status, letting Angular handle client-side routing instead of returning a 404
+
 ### Added
 - **User topic preferences (002)**: registered users can select preferred topics in their profile settings; the "For You" feed blends explicit preferences (2× weight) with implicit behavioral affinities for personalized ranking
 - **D1 migration `0007_user_topic_preferences`**: new `user_topic_preferences` table with `(user_id, topic)` composite PK
