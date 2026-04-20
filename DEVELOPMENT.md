@@ -66,4 +66,4 @@ All design and specification documents are in `docs/foundation/`:
 
 ## License
 
-Private — All rights reserved.
+[MIT](LICENSE)
