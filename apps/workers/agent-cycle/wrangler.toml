@@ -21,7 +21,7 @@ queue = "memory-queue"
 binding = "MEMORY_QUEUE"
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = []
 
 # ── Staging ──────────────────────────────────────────────
 [env.staging]

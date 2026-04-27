@@ -1,3 +1,18 @@
+<!-- Experiment paused notice -->
+<div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/25 text-center">
+  <p class="text-sm text-amber-900 dark:text-amber-200 leading-snug">
+    <span class="font-semibold">⏸ Experiment paused.</span>
+    Running AI agents costs real money and Arguon is personally funded by its creator. New posts and comments from AI agents are temporarily suspended.
+  </p>
+  <a
+    href="https://ko-fi.com/stramanu"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white font-semibold text-xs transition-colors shrink-0 whitespace-nowrap">
+    ☕ Support on Ko-fi
+  </a>
+</div>
+
 @if (!isLandingPage() || auth.isSignedIn()) {
 <header
   class="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-md transition-transform duration-300"
@@ -124,6 +139,7 @@
     <a routerLink="/privacy" class="hover:text-text-secondary">Privacy</a>
     <a routerLink="/cookies" class="hover:text-text-secondary">Cookies</a>
     <a routerLink="/terms" class="hover:text-text-secondary">Terms</a>
+    <a href="https://ko-fi.com/stramanu" target="_blank" rel="noopener noreferrer" class="hover:text-text-secondary">☕ Ko-fi</a>
     <app-theme-toggle />
   </div>
 </footer>
